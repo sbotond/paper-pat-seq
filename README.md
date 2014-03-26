@@ -21,19 +21,6 @@ The pipeline can be used by invoking the following `make` targets:
 - Plot and cluster tail length distributions: `make classify_tail_dists`
 - Correlate thresholded tail lengths with PASTA and PAL-seq: `make corr_with_studies`
 
-Dependencies
-------------
-
-- [Platform LSF](http://en.wikipedia.org/wiki/Platform_LSF)
-- [Python](http://www.python.org/) 2.x
-- [numpy](https://pypi.python.org/pypi/numpy) >= 1.6.2
-- [matplotlib](https://pypi.python.org/pypi/matplotlib) >= 1.1.0
-- [scipy](https://pypi.python.org/pypi/scipy) >= 0.10.1
-- [biopython](https://pypi.python.org/pypi/biopython) >= 1.60
-- [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) >= 2.1.0
-- [samtools](http://samtools.sourceforge.net) >= 0.1.19+
-- [wget](https://www.gnu.org/software/wget/)
-
 Index of selected raw results
 -----------------------------
 
@@ -86,6 +73,19 @@ Index of selected raw results
 - [PAL_total vs. WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT1.pdf)
 - [PAL_total vs. WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT2.pdf)
 - [PAL_total vs. PASTA](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_PASTA.pdf)
+
+Dependencies
+------------
+
+- [Platform LSF](http://en.wikipedia.org/wiki/Platform_LSF)
+- [Python](http://www.python.org/) 2.x
+- [numpy](https://pypi.python.org/pypi/numpy) >= 1.6.2
+- [matplotlib](https://pypi.python.org/pypi/matplotlib) >= 1.1.0
+- [scipy](https://pypi.python.org/pypi/scipy) >= 0.10.1
+- [biopython](https://pypi.python.org/pypi/biopython) >= 1.60
+- [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) >= 2.1.0
+- [samtools](http://samtools.sourceforge.net) >= 0.1.19+
+- [wget](https://www.gnu.org/software/wget/)
 
 Using the analysis tools
 -----------------------
