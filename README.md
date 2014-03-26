@@ -28,7 +28,7 @@ Index of selected raw results
 
 - Tail run lengths until the first 1-5 non-A bases in reads mapped to spike-in poly(A) tracts [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/error_thr.pdf)
 
-### Alignment
+#### Alignment
 
 |   Sample  |   Alignment log    |      Alignment report       |
 |:---------:|:------------------:|:---------------------------:|
@@ -41,7 +41,7 @@ Index of selected raw results
 | MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_align.pdf) |
 | MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_align.pdf) |
 
-### Parsing alignments
+#### Parsing alignments
 
 |   Sample  |   Parse log    |     Parse report       |
 |:---------:|:------------------:|:---------------------------:|
@@ -54,21 +54,21 @@ Index of selected raw results
 | MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.pdf) |
 | MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.pdf) |
 
-### Testing differences between wild type and mutant tail runs
+#### Testing differences between wild type and mutant tail runs
 
 |   Comparison  |   Test log    |     Test report       |   Results |
 |:---------:|:------------------:|:---------------------------:|:------------------------------:|
 | WT1 vs. MUT1     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1_trs.tab) |
 | WT2 vs. MUT2     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2_trs.tab) |
 
-### Tail run distributions from all transcripts with G-tail coverage > 1000
+#### Tail run distributions from all transcripts with G-tail coverage > 1000
 
 - [WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT1.pdf)
 - [WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT2.pdf)
 - [MUT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT1.pdf)
 - [MUT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT2.pdf)
 
-### Cross-study correlation
+#### Cross-study correlation
 
 - [PAL_total vs. WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT1.pdf)
 - [PAL_total vs. WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT2.pdf)
