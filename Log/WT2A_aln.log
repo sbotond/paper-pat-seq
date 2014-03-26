@@ -1,0 +1,48 @@
+[14-03-10 14:59:1394463587] Fastq 1: /nfs/research2/goldman/botond/paper-pat-seq/RawData/lane1polyAGWT2a_1_sequence.txt.gz
+[14-03-10 14:59:1394463587] Fastq 2: /nfs/research2/goldman/botond/paper-pat-seq/RawData/lane1polyAGWT2a_2_sequence.txt.gz
+[14-03-10 14:59:1394463587] Output directory: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2A
+[14-03-10 14:59:1394463587] Read portion used when classifying: 14
+[14-03-10 14:59:1394463587] Minimum tag length: 3
+[14-03-10 14:59:1394463587] Maximum number of Ns in the first 14 bases: 6
+[14-03-10 14:59:1394463587] Classifying read pairs.
+[14-03-10 15:18:1394464702] Total fragments: 16291112
+[14-03-10 15:18:1394464702] NVTR fragments: 13076853
+[14-03-10 15:18:1394464702] G-tail fragments: 3214259
+[14-03-10 15:18:1394464702] Forward G-tail reads: 6441
+[14-03-10 15:18:1394464702] Reverse G-tail reads: 5551943
+[14-03-10 15:18:1394464702] Indexing reference.
+[14-03-10 15:18:1394464718] Aligning G-tailed reads.
+[14-03-10 15:29:1394465355] <bowtie2> 3214259 reads; of these:
+[14-03-10 15:29:1394465355] <bowtie2>   3214259 (100.00%) were paired; of these:
+[14-03-10 15:29:1394465355] <bowtie2>     3162790 (98.40%) aligned concordantly 0 times
+[14-03-10 15:29:1394465355] <bowtie2>     37517 (1.17%) aligned concordantly exactly 1 time
+[14-03-10 15:29:1394465355] <bowtie2>     13952 (0.43%) aligned concordantly >1 times
+[14-03-10 15:29:1394465355] <bowtie2>     ----
+[14-03-10 15:29:1394465355] <bowtie2>     3162790 pairs aligned concordantly 0 times; of these:
+[14-03-10 15:29:1394465355] <bowtie2>       2 (0.00%) aligned discordantly 1 time
+[14-03-10 15:29:1394465355] <bowtie2>     ----
+[14-03-10 15:29:1394465355] <bowtie2>     3162788 pairs aligned 0 times concordantly or discordantly; of these:
+[14-03-10 15:29:1394465355] <bowtie2>       6325576 mates make up the pairs; of these:
+[14-03-10 15:29:1394465355] <bowtie2>         5123508 (81.00%) aligned 0 times
+[14-03-10 15:29:1394465355] <bowtie2>         1015907 (16.06%) aligned exactly 1 time
+[14-03-10 15:29:1394465355] <bowtie2>         186161 (2.94%) aligned >1 times
+[14-03-10 15:29:1394465355] <bowtie2> 20.30% overall alignment rate
+[14-03-10 15:29:1394465355] <bowtie2> 
+[14-03-10 15:33:1394465587] G-tail alignments are at: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2A/gtail_aln/gtail_reads.sam
+[14-03-10 15:33:1394465587] Position-sorted G-tail alignments are at: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2A/gtail_aln/gtail_reads_sort.bam
+[14-03-10 15:33:1394465593] Flagstats:
+[14-03-10 15:33:1394465593] --------------------------------------------
+[14-03-10 15:33:1394465593] 
+{'chr_mismatch': 10.0, 'duplicates': 0.0, 'nr_read1': 3214259.0, 'seq_paired': 6428518.0, 'nr_read2': 3214259.0, 'qc_fail': 6428518.0, 'chr_mismatch_q5': 3.0, 'nr_proper_with_mate': 102948.0}
+[14-03-10 15:33:1394465593] --------------------------------------------
+[14-03-10 15:33:1394465593] Aligning NVTR reads.
+[14-03-10 16:23:1394468597] <bowtie2> 13076853 reads; of these:
+[14-03-10 16:23:1394468597] <bowtie2>   13076853 (100.00%) were paired; of these:
+[14-03-10 16:23:1394468597] <bowtie2>     5406931 (41.35%) aligned concordantly 0 times
+[14-03-10 16:23:1394468597] <bowtie2>     6268885 (47.94%) aligned concordantly exactly 1 time
+[14-03-10 16:23:1394468597] <bowtie2>     1401037 (10.71%) aligned concordantly >1 times
+[14-03-10 16:23:1394468597] <bowtie2> 58.65% overall alignment rate
+[14-03-10 16:23:1394468597] <bowtie2> 
+[14-03-10 16:42:1394469744] NVTR alignments are at: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2A/nvtr_aln/nvtr_reads.sam
+[14-03-10 16:42:1394469744] Position-sorted NVTR alignments are at: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2A/nvtr_aln/nvtr_reads_sort.bam
+['chr_mismatch', 'chr_mismatch_q5', 'duplicates', 'nr_proper_with_mate', 'nr_read1', 'nr_read2', 'qc_fail', 'seq_paired']

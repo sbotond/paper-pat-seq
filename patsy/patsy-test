@@ -1,0 +1,848 @@
+#!/usr/bin/env python
+# Copyright (C) 2013 EMBL - European Bioinformatics Institute
+#
+# This program is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# Neither the institution name nor the name patsy
+# can be used to endorse or promote products derived from
+# this software without prior written permission. For
+# written permission, please contact <sbotond@ebi.ac.uk>.
+
+# Products derived from this software may not be called
+# patsy nor may patsy appear in their
+# names without prior written permission of the developers.
+# You should have received a copy of the GNU General Public
+# License along with this program. If not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION="2.0"
+
+import      sys
+sys.path.append("./lib/")
+import      os
+import      argparse
+from        collections import  defaultdict
+from        collections import  OrderedDict
+import      itertools   as      it
+import      HTSeq       as      ht
+import      numpy       as      np
+import      utils       as      u
+from        scipy       import  stats
+from        scipy       import  special
+import      snorm
+
+def parse_arguments():
+    """ Parse arguments """
+    parser = argparse.ArgumentParser(description='Test for differential polyadenylation in PAT-seq data (%s).' % VERSION)
+    parser.add_argument('-a', metavar='a_pickles', type=str, nargs='*', help='Parsed read pickles - group A.', required=True)
+    parser.add_argument('-na', metavar='a_name', type=str, help='Name of data group A.', required=True)
+    parser.add_argument('-b', metavar='b_pickles', type=str, nargs='*', help='Parsed read pickles - group B.', required=True)
+    parser.add_argument('-nb', metavar='b_name', type=str, help='Name of data group B.', required=True)
+    parser.add_argument('-M', metavar='min_size_U', type=int, default=30, help='Minimum sample size when performing Mann-Whitney U test (30).')
+    parser.add_argument('-s', metavar='sig_level', type=float, default=0.05, help='Significance level.')
+    parser.add_argument('-op', metavar='out_pickle', type=str, default="patsy_test.pk", help='Output pickle file.', required=False)
+    parser.add_argument('-ot', metavar='out_trs', type=str, default="patsy_test_trs.tab", help='Output tabular file: transcript properties.', required=False)
+    parser.add_argument('-og', metavar='out_glob', type=str, default="patsy_test_glob.tab", help='Output tabular file: global results.', required=False)
+    parser.add_argument('-otr', metavar='out_runs_prefix', type=str, default="tail_runs_", help='Output tabular file: tail runs prefix.', required=False)
+    parser.add_argument('-orr', metavar='out_rep_prefix', type=str, default="tail_run_means.tab", help='Output tabular file: tail means per replicate.', required=False)
+    parser.add_argument('-r', metavar='report', type=str, default="patsy_test.pdf", help='Report PDF.', required=False)
+    parser.add_argument('-t', action='store_true' ,default=False, help='Plot reports for all transcripts.')
+    args    = parser.parse_args()
+    args.i  = None
+    args.P  = 0.0
+    return args
+
+
+class Transcriptome:
+    def __init__(self, trl_hash):
+        self.trs    = sorted(trl_hash.keys())
+        self.trl    = trl_hash
+
+class DataGroup:
+    """ A group of G-tail/NVTR datasets with the same treatment """
+    def __init__(self, pickle_files, name, pen, log, report):
+        self.name           = name 
+        self.log            = log
+        self.log.log("Initialising data group: %s" % self.name)
+        self.report         = report
+        self.pen            = pen
+        self.in_pickles     = pickle_files
+        self.load_datasets(pickle_files)
+        self.build_transcriptome()
+        self.flatten_frag_dists()
+
+    def __str__(self):
+        return self.name
+
+    def keyset(self, h):
+        """ Return the keys of a dict as set """
+        return set( h.keys() )
+
+    def load_datasets(self, pickle_files):
+        """ Load datasets from pickle files """
+        self.datasets   =  OrderedDict()
+        for pickle in pickle_files: 
+            d   = Dataset(pickle,self.pen, self.log, self.report)
+            if d.name in self.datasets:
+                self.log.log("Duplicate dataset %s!" % d.name)
+            self.datasets[d.name] = d
+
+    def build_transcriptome(self):
+        """ Cross-check transcripts and build transcriptome object """
+        #  Cross-check transcripts:
+        for x in self.datasets.itervalues():
+            for y in self.datasets.itervalues():
+                if x is y:
+                    continue
+                if self.keyset(x.trl) != self.keyset(y.trl):
+                    self.fatal("Transcriptome mismatch detected between %s and %s!" % (x.name, y.name))
+        # Check passed, construct transcriptome object:
+        first               = self.datasets.values()[0]
+        self.transcriptome  = Transcriptome(first.trl)
+
+    def flatten_frag_dists(self):
+        """ Convert the fragment size distributions into numpy arrays """
+        # Figure out maximum fragment length across datasets:
+        self.max_flen = max(( x.max_fsize() for x in self.datasets.itervalues() ))
+        # Tabulate frgament size distributions:
+        for d in self.datasets.itervalues():
+            d.tabulate_fragdist(self.max_flen)
+            d.fit_skew_normal()
+
+    def tr_lik(self, tr, theta):
+        """ Calculate the log likelihood for a given transcript and parameter """
+        L = 0.0 
+        for d in self.datasets.itervalues():
+           L += d.tr_lik(tr, theta) 
+        return L
+
+    def tr_lik_profile(self, tr, thetas):
+        """ Return likelihood profile for a given transcript and range of parameters """
+        LP = np.zeros((len(thetas)),dtype=float)
+        for d in self.datasets.itervalues():
+           LP += d.tr_lik_profile(tr, thetas) 
+        return LP
+
+    def tr_tail_runs(self, tr):
+        """ Return tail runs for a given transcript """
+        return np.concatenate([d.tr_tail_runs(tr) for d in self.datasets.values()])
+
+    def expr_gtail(self, tr):
+        """ Get number of G-tail fragments for a given transcript """
+        return sum( [ d.expr_gtail(tr) for d in self.datasets.itervalues() ] ) 
+
+    def expr_nvtr(self, tr):
+        """ Get number of NVTR fragments for a given transcript """
+        return sum( [ d.expr_nvtr(tr) for d in self.datasets.itervalues() ] ) 
+
+    def global_tail_runs(self):
+        """ Return all tail runs in a numpy array """
+        return np.concatenate([d.global_tail_runs() for d in self.datasets.values()
+])
+
+    def max_run(self):
+        """ Return maximum tail run length """
+        return np.max(self.global_tail_runs())
+
+class Dataset:
+    """ A G-tail & NVTR dataset """
+    def __init__(self, pickle, pen, log,report):
+        t   = u.unpickle(pickle)
+        self.in_pickle      = pickle
+        self.name           = t['name']
+        self.report         = report
+        self.log            = log
+        self.log.log("Initialising dataset: %s" % self.name)
+        self.pen            = pen
+
+        self.g_file         = t['g']['file']
+        self.g_cov          = t['g']['cov']
+        self.g_runs_dict    = t['g']['runs']
+        self.g_runs         = self._process_runs(t['g']['runs'])
+        self.n_file         = t['n']['file']
+        self.n_cov          = t['n']['cov']
+        self.frag_dist_data = t['n']['frag_dist']
+        self.lik_cache      = { }
+
+        self.trl            = t['trl']
+        self._max_fsize     = None
+
+    def _process_runs(self, h):
+        """ Convert tail run lists into numpy arrays """
+        tmp = { }
+        for tr, rd in h.iteritems():
+            t2  = []
+            for rl, nr in rd.iteritems():
+                t2.extend([rl] * nr)
+            tmp[tr] = np.array(t2, dtype=int)
+        return tmp
+
+    def tabulate_fragdist(self,max_len):
+        """ Tabulate fragment size distribution in a numpy array """
+        t   = np.zeros((max_len+1),dtype=float) 
+        for k,v in self.frag_dist_data.iteritems():
+            t[k] = v
+        self.frag_dist_data = t
+        # Add pseudocounts:
+        t   = t + 1
+        self.frag_dist = t/np.sum(t)
+
+    def fit_skew_normal(self):
+        """ Fit skew normal on fragment size distribution """
+        self.log.log("Fitting skew normal distribution on fragment sizes of %s" % self.name)
+        t   = self.frag_dist
+        w   = 0.001 # 
+        f   = snorm.FitSkewNormal(self.frag_dist,w, self.log, self.report)
+        f.fit()
+        f.plot_model(self.name)
+        for i in xrange(len(t)):
+            t[i] = f.pdf(i)
+        self.frag_dist = t
+        
+    def max_fsize(self):
+        """ Return maximum fragment size """
+        if self._max_fsize is None:
+            self._max_fsize = max(self.frag_dist_data.iterkeys())
+        return self._max_fsize
+
+    def tr_lik(self, tr, theta):
+        """ Calculate log likelihood for a given projection point theta """
+        # There are no G-tail reads mapped to this transcript:
+        if tr not in self.g_cov:
+            return 0.0
+        # Initialise logLik:
+        logLik  = 0.0
+        max_fs  = len(self.frag_dist)
+        # Iterate over G-tail anchor positions:
+        for pos, counts in self.g_cov[tr].iteritems():
+            # Calculate distance from projection point theta:
+            delta   = theta - pos
+            # Penalise if distance is negative or larger then
+            # maximum fragment size:
+            if delta < 0 or delta >= max_fs:
+                logLik += self.pen * counts
+                continue
+            # Accumulate log likelihood for valid
+            # positions:
+            logLik += np.log(self.frag_dist[delta]) * counts
+        return logLik
+
+    def tr_lik_profile(self, tr, thetas): 
+        """ Return likelihood profile for a given transcript and range of parameters """
+        LP = np.zeros(len(thetas),dtype=float) 
+        for i, theta in enumerate(thetas):
+            LP[i] = self.tr_lik(tr, theta)
+        return LP
+
+    def tr_tail_runs(self, tr):
+        """ Return tail runs for a given transcript """
+        if tr not in self.g_runs:
+            return np.array([],dtype=int)
+        return self.g_runs[tr]
+
+    def expr_gtail(self, tr):
+        """ Get number of G-tail fragments for a given transcript """
+        if tr not in self.g_runs:
+            return 0
+        return len(self.g_runs[tr])
+
+    def expr_nvtr(self, tr):
+        """ Get number of G-tail fragments for a given transcript """
+        if tr not in self.n_cov:
+            return 0
+        return sum( [ n for n in  self.n_cov[tr].itervalues() ] )
+
+    def global_tail_runs(self):
+        """ Return all tail runs in a numpy array """
+        return np.concatenate([ x for x in self.g_runs.itervalues() ])
+
+class Results:
+    """ Class for processing and saving test results """
+    def __init__(self,trs,a,b, pickle, tab, glob, runs, mean_runs, report, log):
+        self.pickle             = pickle
+        self.a                  = a
+        self.b                  = b
+        self.tab                = tab
+        self.glob               = glob
+        self.runs               = runs
+        self.mean_runs          = mean_runs
+        self.log                = log
+        self.report             = report
+        self.r                  = OrderedDict()
+        # Intialise transcript array:
+        self.r['transcripts']   = np.array(trs)
+        self.r['nr_trs']        = len(self.r['transcripts'])
+        # Initialise index table:
+        self.r['itab']          = { v:k for k,v in enumerate(self.r['transcripts']) }
+        # Initialise result arrays:
+        template    = np.array([np.nan] * self.r['nr_trs'],dtype=float)
+        # Transcript anchor tests:
+        #self.r['anchors_p']         = template.copy() 
+        #self.r['anchors_ml_diff']   = template.copy()
+        #self.r['anchors_stat']      = template.copy() 
+        #self.r['anchors_mla']       = template.copy()
+        #self.r['anchors_mlb']       = template.copy()
+        #self.r['anchors_lika']      = template.copy()
+        #self.r['anchors_likb']      = template.copy()
+        # Transcript tail run tests:
+        self.r['runs_m_diff']       = template.copy()
+        self.r['runs_p']       = template.copy()
+        self.r['runs_stat']         = template.copy()
+        self.r['runs_ma']           = template.copy()
+        self.r['runs_mb']           = template.copy()
+        # Global tail run test:
+        self.r['glob_runs_p']  = np.nan
+        self.r['glob_runs_m_diff']  = np.nan
+        self.r['glob_runs_stat']    = np.nan
+        self.r['glob_runs_ma']      = np.nan
+        self.r['glob_runs_mb']      = np.nan
+        # Dataset IDs:
+        self.r['datasets']          = {
+            'a': {'name': a.name, 'in_pickles': a.in_pickles},
+            'b': {'name': b.name, 'in_pickles': b.in_pickles}
+        }
+
+    def check_name(self, name):
+        """ Check the validity of result name """
+        if name not in self.r:
+            self.log.fatal("Illegal result variable: %s" % name)
+
+    def save_global(self,name, val):
+        """ Save global result """
+        self.check_name(name)
+        self.r[name]    = val
+
+    def save_tr(self, tr, name, val):
+        """ Save a result for a given transcript """
+        self.check_name(name)
+        i               = self.r['itab'][tr]
+        self.r[name][i] = val 
+
+    def get_res_with_tr(self, name):
+        """ Get not nan results with transcripts """
+        self.check_name(name)
+        trs = self.r['transcripts']
+        d   = self.r[name]
+        i   = np.logical_not(np.isnan(d))
+        return trs[i], d[i]
+
+    def get_res(self, name):
+        """ Get not nan results """
+        self.check_name(name)
+        d   = self.r[name]
+        i   = np.logical_not(np.isnan(d))
+        return d[i]
+
+    def get_res_raw(self, name):
+        """ Get raw results """
+        self.check_name(name)
+        d   = self.r[name]
+        return d
+
+    def get_sig_res(self, name, pname, sl):
+        """ Get significant and non nan results """
+        self.check_name(name)
+        d   = self.r[name]
+        p   = self.r[pname]
+        i   = np.logical_not(np.isnan(d))
+        with np.errstate(invalid='ignore'):
+            ip  = np.logical_and( np.logical_not(np.isnan(d)), p < sl )
+        return d[np.logical_and(i,ip)]
+
+    def get_sig_res_pair(self, an, ap, bn, bp, sl):
+        """ Get a pair of results - both not nan and significant """
+        ad, ap  = self.r[an], self.r[ap]
+        bd, bp  = self.r[bn], self.r[bp]
+        # Both not nan:
+        inan    = np.logical_and( np.logical_not(np.isnan(ad)), np.logical_not(np.isnan(bd)) )
+        # Both significant:
+        with np.errstate(invalid='ignore'):
+            isig    = np.logical_and( (ap < sl), (bp < sl) )
+        i       = np.logical_and(inan, isig)
+        return ad[i], bd[i]
+
+    def get_res_pair(self, an, bn):
+        """ Get a pair of results - both not nan """
+        ad        = self.r[an]
+        bd        = self.r[bn]
+        # Both not nan:
+        inan    = np.logical_and( np.logical_not(np.isnan(ad)), np.logical_not(np.isnan(bd)) )
+        return ad[inan], bd[inan]
+
+    def _get_tr_props(self):
+        """ Get array properties """
+        non_array = ('nr_trs', 'itab', 'datasets','glob_runs_p','glob_runs_stat','glob_runs_ma','glob_runs_mb','glob_runs_m_diff')
+        for name in self.r.iterkeys():
+            if name in non_array:
+                continue
+            yield name
+
+    def _tab_header(self, fh):
+        """ Write table header """
+        for name in self._get_tr_props():
+            fh.write("%s\t" % name)
+        fh.write("\n")
+
+
+    def tab_trs(self):
+        """ Save transcript results in tabular format """
+        fh  = open(self.tab, 'w')
+        # write table header:
+        self._tab_header(fh)
+
+        # Write transcript properties:
+        for i in xrange(len(self.r['transcripts'])):
+            for name in self._get_tr_props():
+                n, d    = name, self.r[name][i]
+                if type(d) in (str, np.string_):
+                    fh.write("\"%s\"\t" % d)
+                elif np.isnan(d):
+                    fh.write("NA\t") 
+                else:
+                    fh.write("%g\t" % d)
+            fh.write("\n")
+
+        fh.flush()
+        fh.close()
+
+    def pickle_results(self):
+        """ Save results to pickle file """
+        u.pickle(self.r, self.pickle)
+
+    def tab_glob(self):
+        """ Save global results in tabular format """
+        globs = ('nr_trs', 'glob_runs_p','glob_runs_stat','glob_runs_ma','glob_runs_mb','glob_runs_m_diff')
+        fh  = open(self.glob, 'w')
+        # Print header:
+        for name in globs:
+            fh.write("%s\t" % name)
+        fh.write("name_a\tname_b")
+        fh.write("\n")
+        # Print data:
+        for name in globs:
+            fh.write("%g\t" % self.r[name])
+        fh.write("%s\t%s" % (self.r['datasets']['a']['name'], self.r['datasets']['b']['name']))
+        fh.write("\n")
+        
+        fh.flush()
+        fh.close()
+
+    def tab_runs(self):
+        """ Tabulate tail runs """
+        trs = self._get_trs()
+        for ds in self._get_datasets():
+                self.tab_runs_ds(ds, trs)
+
+    def _get_datasets(self):
+        for dg in (self.a, self.b):
+            for ds in dg.datasets.itervalues():
+               yield ds 
+
+    def _get_trs(self):
+        return self.a.transcriptome.trs
+
+    def tab_runs_ds(self, ds, trs):
+        """ Tabulate tail runs from the different replicates """
+        fh          = open("%s%s.tab" % ( self.runs, ds.name), 'w')
+        # Print header:
+        max_run     = max(self.a.max_run(), self.b.max_run())
+        # At least 100 columns:
+        if max_run < 100:
+            max_run = 100
+        fh.write("transcript\t")
+        for i in xrange(max_run+1):
+            fh.write("R%d\t" % i)
+        fh.write("\n")
+        # Print tail runs for transcript:
+        for tr in trs: 
+            fh.write("%s\t" % tr)
+            for i in xrange(max_run+1):
+                if tr in ds.g_runs_dict:
+                    fh.write("%d\t" % ds.g_runs_dict[tr].get(i,0))
+                else:
+                    fh.write("0\t")
+            fh.write("\n")
+
+        fh.flush()
+        fh.close()
+
+    def tab_mean_runs(self):
+        """ Tabulate mean tail run lengths """
+        fh  = open(self.mean_runs, 'w')
+        datasets = list( self._get_datasets() )
+        trs      = self._get_trs()
+
+        # Print header:
+        fh.write("transcript\t")
+        for ds in datasets:
+            fh.write("%s\t" % ds.name)
+        fh.write("\n")
+        # Print data:
+        for tr in trs:
+            fh.write("%s\t" % tr)
+            for ds in datasets:
+                mean_run    = np.mean( ds.tr_tail_runs(tr) )
+                if np.isnan(mean_run):
+                    fh.write("NA\t")
+                else:
+                    fh.write("%f\t" % mean_run )
+            fh.write("\n")
+
+        fh.flush()
+        fh.close()
+
+    def dump_results(self):
+        """ Save results as pickle and tab separated text """
+        self.pickle_results()
+        self.tab_trs()
+        self.tab_glob()
+        self.tab_runs()
+        self.tab_mean_runs()
+
+    def process_expr(self, datasets):
+        """ Process expression levels """
+        for ds, name in zip(datasets,['a', 'b']):
+            self.process_expr_ds(ds, name)
+
+    def process_expr_ds(self, ds, name):
+        """ Process expression levels for a single dataset """
+        template    = np.array([np.nan] * self.r['nr_trs'], dtype=float)
+        gtail       = template.copy() 
+        nvtr        = template.copy()
+        for tr in self.r['transcripts']:
+                i           = self.r['itab'][tr]
+                gtail[i]    = ds.expr_gtail(tr)
+                nvtr[i]     = ds.expr_nvtr(tr)
+        self.r['expr_gtail_' + name] = gtail
+        self.r['expr_nvtr_'  + name] = nvtr
+
+
+    def expr_gvsn(self, ds, name):
+        """ Plot absolute G-tail vs. nvtr counts """
+        gt, nv  = self.get_res_pair('expr_gtail_'+ds, 'expr_nvtr_'+ds)
+        title   ="NVTR vs. G-tail absolute fragment counts in %s" % name
+        xlab    ="log(NVTR counts + 1)" 
+        ylab    ="log(G-tail counts + 1)" 
+        self.report.plot_arrays(np.log(nv+1), np.log(gt+1),col='green',title=title,xlab=xlab,ylab=ylab)
+
+    def expr_grvsg(self, ds, name):
+        """ Plot G-tail counts vs. tail run lengths"""
+        a, b  = self.get_res_pair('expr_gtail_'+ds, 'runs_m'+ds)
+        title   ="G-tail fragment counts vs. tail runs in %s" % name
+        xlab    ="log(G-tail counts +1)" 
+        ylab    ="Tail run length" 
+        self.report.plot_arrays(np.log(a+1), b,col='blue',title=title,xlab=xlab,ylab=ylab)
+
+    def expr_grvsn(self, ds, name):
+        """ Plot NVTR counts vs. tail run lengths"""
+        a, b  = self.get_res_pair('expr_nvtr_'+ds, 'runs_m'+ds)
+        title   ="NVTR fragment counts vs. tail runs in %s" % name
+        xlab    ="log(NVTR counts +1)" 
+        ylab    ="Tail run length" 
+        self.report.plot_arrays(np.log(a+1), b,col='magenta',title=title,xlab=xlab,ylab=ylab)
+
+    def expr_hists(self, ds1, name1, ds2, name2, ctype):
+        """ Histograms of relative expression levels """
+        if ctype == "NVTR":
+            c1  = self.get_res('expr_nvtr_' + ds1) 
+            c2  = self.get_res('expr_nvtr_' + ds2) 
+        elif ctype == "G-tail":
+            c1  = self.get_res('expr_gtail_' + ds1) 
+            c2  = self.get_res('expr_gtail_' + ds2) 
+        else:
+            self.log.fatal("Illegal type")    
+        
+        c1      = c1/np.sum(c1)
+        c2      = c2/np.sum(c2)
+        c1      = np.log(c1[ c1 > 0])
+        c2      = np.log(c2[ c2 > 0])
+        title   = "Distribution of nonzero %s relative fragment counts" % ctype
+        xlab    = "Log relative fragment counts"
+        ylab    = "Frequency"
+        self.report.plot_double_hists(c1,c2, title=title, xlab=xlab, ylab=ylab,bins=50,lab1=name1,lab2=name2)
+
+    def expr_cdvstd(self, ds1, name1, ds2, name2, ctype):
+        """ Count difference vs. tail run differences"""
+        if ctype == "NVTR":
+            c1  = self.get_res_raw('expr_nvtr_' + ds1) 
+            c2  = self.get_res_raw('expr_nvtr_' + ds2) 
+        elif ctype == "G-tail":
+            c1  = self.get_res_raw('expr_gtail_' + ds1) 
+            c2  = self.get_res_raw('expr_gtail_' + ds2) 
+        else:
+            self.log.fatal("Illegal type")    
+
+        c1, c2  = c1/np.sum(c1), c2/np.sum(c2)
+        cd      = c2 - c1
+
+        t1      = self.get_res_raw('runs_m'+ds1)
+        t2      = self.get_res_raw('runs_m'+ds2)
+        td      = t2 - t1
+
+        inan    = np.logical_and( np.logical_not(np.isnan(cd)), np.logical_not(np.isnan(td)) )
+        cd, td  = cd[inan], td[inan]
+        
+        title   = "Relative %s count diff. vs. tail run diff.: %s - %s" % (ctype, name2, name1)
+        xlab    = "Relative %s count differences" % ctype
+        ylab    = "Tail run differences"
+        self.report.plot_arrays(cd, td, title=title, xlab=xlab, ylab=ylab)
+
+
+    def expr_plots(self):
+        """ Generate expression level plots """
+        # Dataset "id" and name:
+        dsi = { k:v['name'] for k,v in self.r['datasets'].items() }
+        dummy = 0
+        for i1, n1 in dsi.iteritems():
+            for i2, n2 in dsi.iteritems():
+                if i1 == i2:
+                    self.expr_gvsn(i1, n1)
+                    self.expr_grvsg(i1, n1)
+                    self.expr_grvsn(i1, n1)
+                    pass
+                else:
+                    if dummy == 0:
+                        self.expr_cdvstd(i1, n1, i2, n2, 'NVTR')
+                        self.expr_cdvstd(i1, n1, i2, n2, 'G-tail')
+                        self.expr_hists(i1, n1, i2, n2, 'NVTR')
+                        self.expr_hists(i1, n1, i2, n2, 'G-tail')
+                        dummy += 1
+
+
+class Tester:
+    def __init__(self, a, b, lrt_targets, sig_level, min_us, plot_all, res_pickle, res_trs,res_glob, res_runs, mean_runs, log, report):
+        self.trs_cross_check(a,b)
+        self.transcriptome      = a.transcriptome
+        self.lrt_targets        = lrt_targets
+        self.groups             = ( a, b )
+        self.sig_level          = sig_level
+        self.min_us             = min_us
+        self.plot_all           = plot_all
+        self.log                = log
+        self.report             = report
+        self.max_flen           = max( (x.max_flen for x in self.groups) )
+        self.res                = Results(self.transcriptome.trs, a,b, res_pickle, res_trs, res_glob, res_runs, mean_runs, self.report, self.log)
+
+    def trs_cross_check(self,a, b):
+        """ Cross-check transcriptomes """
+        if a.transcriptome.trs != b.transcriptome.trs:
+            self.fatal("Transcriptome mismatch between data groups!")
+
+    def test(self):
+        """ Run anchor and tail run tests """
+        # Global tail runs test:
+        self.test_global_runs()
+        #i = 0 # for debugging
+        # Run per-transcript tests: 
+        for tr, tr_len in self.transcriptome.trl.iteritems():
+            self.log.log("Running tests on transcript: %s" % tr)
+            # Perform tail runs test:
+            self.test_runs(tr)
+            # for debugging
+            #i += 1
+            #if i > 100:
+            #    break 
+
+        self.process_p_values()
+        self.process_expr()
+        self.plot_tr_results()
+        self.res.expr_plots()
+        return self.res
+
+    def test_anchors(self, tr):
+        """ Test poly(A) tail differences from anchor data """
+        self.log.log("\tAnchors test:")
+        # Datagroup names:
+        an      = self.groups[0].name
+        bn      = self.groups[1].name
+        # Construct parameter range:
+        tr_len  = self.transcriptome.trl[tr]
+        thetas  = np.arange(0, tr_len + self.max_flen)
+        # Calculate likelihood profiles:
+        alik    = self.groups[0].tr_lik_profile(tr, thetas)
+        blik    = self.groups[1].tr_lik_profile(tr, thetas)
+        jlik    = alik + blik
+        # Get Maximum Likelihood solutions:
+        aML, aL = self.argmax(thetas, alik)
+        bML, bL = self.argmax(thetas, blik)
+        jML, jL = self.argmax(thetas, jlik)
+        # Log ML solutions:
+        mult_proc   = lambda x: 'multiple maxima' if x is None else x
+        self.log.log("\t\tDatagroup %s\t\t | maxLik: %g\tTheta: %s" %(an, aL, mult_proc(aML) ) )
+        self.log.log("\t\tDatagroup %s\t\t | maxLik: %g\tTheta: %s" %(bn, bL, mult_proc(bML) ) )
+        self.log.log("\t\tNull model\t\t | maxLik: %g\tTheta: %s" %(jL, mult_proc(jML) ) )
+
+        # Perform likelihood ratio test if there are no multiple maxima:
+        nn  = lambda x: x is not None
+        if nn(aML) and nn(bML) and nn(jML):
+            p_val, X2   = self.LRT(aL, bL, jL)
+            self.log.log("\t\tLRT results:\t p-value: %g\tChi^2: %g\tTheta(%s) - Theta(%s): %g" % (p_val, X2, bn, an, bML-aML))
+            # Save LRT results:
+            #self.res.save_tr(tr, 'anchors_p', p_val)
+            #self.res.save_tr(tr, 'anchors_stat', X2)
+            #self.res.save_tr(tr, 'anchors_ml_diff', bML-aML)
+            #self.res.save_tr(tr, 'anchors_mla', aML)
+            #self.res.save_tr(tr, 'anchors_mlb', bML) 
+            #self.res.save_tr(tr, 'anchors_lika', aL) 
+            #self.res.save_tr(tr, 'anchors_likb', bL) 
+            # Plot likelihod profiles:
+            if p_val < self.sig_level or self.plot_all:
+                title   = "Likelihood profiles for %s" % tr
+                xlab    = "Theta"
+                ylab    = "Log likelihood"
+                self.report.plot_liks(thetas, alik, blik, jlik,title=title,xlab=xlab,ylab=ylab,
+                na=an, nb=bn, nj="Joint"
+                )
+        else:
+            self.log.log("\t\tSkipping LRT.")
+
+    def LRT(self, aL, bL, jL, df=1):
+        """ Perform likelihood ratio test """
+        # Calculate Chi squared statistic:
+        X2      = -2 * jL + 2 * (aL + bL)
+        # Get p-value:
+        p_val   = special.chdtrc(df,X2)
+        return p_val, X2
+
+    def argmax(self,x, L):
+        """ Return argmax """
+        max_lik = np.max(L)
+        tmp     = x[L == max_lik]
+        # Multiple maxima:
+        if len(tmp) > 1:
+            return None, max_lik
+        return tmp[0], max_lik
+
+    def mannwhitneyu(self, a, b):
+        """ Check sample size and perform Mann-Whitney U test """
+        if len(a) < self.min_us+1 or len(b) < self.min_us+1:
+            return np.nan, np.nan
+        return stats.mannwhitneyu(a,b)
+
+    def test_global_runs(self):
+        """ Test global tail length difference """
+        self.log.log("Running global tail runs test.")
+        # Get datasets:
+        a, b    = self.groups
+        # Get all tail runs:
+        ar      = a.global_tail_runs()
+        br      = b.global_tail_runs()
+        # Calculate mean lengths:
+        ma      = np.mean(ar)    
+        mb      = np.mean(br)
+        self.log.log("Mean tail runs:\t%s: %g %s: %g (%s - %s): %g" % (a.name, ma, b.name, mb, b.name, a.name, mb - ma))
+        # Perform Mann-Whitney U-test:
+        U, p    = self.mannwhitneyu(ar,br) 
+        self.log.log("One-sided Mann-Whitney U-test:\tp-value: %g, U: %g" % (p, U) )
+
+        if p != np.nan and (p < self.sig_level or self.plot_all):
+            title="Global tail run dists. (Mann-Whitney uncorr. p: %g, U: %g)" % (p, U) 
+            self.plot_run_res(ar, br, p, U, title)
+
+        # Save results:
+        self.res.save_global('glob_runs_p', p)
+        self.res.save_global('glob_runs_stat', U)
+        self.res.save_global('glob_runs_m_diff', mb - ma)
+        self.res.save_global('glob_runs_ma', ma)
+        self.res.save_global('glob_runs_mb', mb)
+
+    
+    def plot_run_res(self, ar, br, p, U, title):
+        """ Plot run test results """
+        self.report.plot_double_hists(
+            ar, br, 
+            title=title,
+            xlab="Tail run length",
+            ylab="Count",
+            lab1=a.name, lab2=b.name,
+            normed=False, mark_means=True,
+            bins=98
+        )
+
+    def test_runs(self, tr):
+        """ Test poly(A) tail differences from tail run data """
+        self.log.log("\tTail runs test:")
+        # Get datasets:
+        a, b    = self.groups
+        # Get all tail runs:
+        ar      = a.tr_tail_runs(tr)
+        br      = b.tr_tail_runs(tr)
+        # Calculate mean lengths:
+        ma      = np.mean(ar)    
+        mb      = np.mean(br)
+        self.log.log("\t\tMean tail runs: %s: %g %s: %g (%s - %s): %g" % (a.name, ma, b.name, mb, b.name, a.name, mb - ma))
+        # Perform Mann-Whitney U-test:
+        U, p    = self.mannwhitneyu(ar,br) 
+        self.log.log("\t\tOne-sided Mann-Whitney U-test: uncorrected p-value: %g, U: %g" % (p, U) )
+        # Plot test results:
+        if p != np.nan and (p < self.sig_level or self.plot_all):
+            title="Tail run dists. for %s (Mann-Whitney uncorr. p: %g, U: %g)" % (tr, p, U)
+            self.plot_run_res(ar, br, p, U, title)
+        # Save results:
+        self.res.save_tr(tr, 'runs_p', p)
+        self.res.save_tr(tr, 'runs_stat', U)
+        self.res.save_tr(tr, 'runs_m_diff', mb - ma)
+        self.res.save_tr(tr, 'runs_ma', ma)
+        self.res.save_tr(tr, 'runs_mb', mb)
+
+    def plot_tr_results(self):
+        """ Global plot of transcriptwise test results """
+        ## Runs test results:
+        an      = self.groups[0].name
+        bn      = self.groups[1].name
+        # Plot mean differences: 
+        runs_mdiff   = self.res.get_sig_res('runs_m_diff','runs_bonf_p',self.sig_level)
+        if len(runs_mdiff) > 0:
+            self.report.plot_hist(runs_mdiff,title="Distribution of significant mean tail run differences", xlab="mean(%s) - mean(%s)" % (bn, an),ylab="Counts",col="green")
+            
+    def bonf_correct(self, p):
+        """ Bonferroni correction of p-values """
+        return p * float(len(p))
+
+    def process_p_values(self):
+        """ Perform p-value correction """
+        #self.res.r['anchors_bonf_p']    = self.bonf_correct(self.res.r['anchors_p'])
+        self.res.r['runs_bonf_p']       = self.bonf_correct(self.res.r['runs_p'])
+
+    def process_expr(self):
+        """ Process expression levels """
+        self.res.process_expr(self.groups)
+
+def log_input(a, l):
+    """ Log some arguments """
+    l.log("Pickle files for first data group(%s):" % a.na)
+    for f in a.a:
+        l.log("\t%s" % f)
+    l.log("Pickle files for second data group(%s):" % a.nb)
+    for f in a.b:
+        l.log("\t%s" % f)
+    l.log("Log likelihood penalty for data oustide valid range: %g" % a.P)
+    l.log("Minimum sample size for Mann-Whitney U-test: %d" % a.M)
+
+##########################################
+
+args        = parse_arguments()
+L           = u.Log()
+log_input(args, L)
+R           = u.Report(args.r)
+
+a           = DataGroup(args.a, args.na, args.P, L, R)
+b           = DataGroup(args.b, args.nb, args.P, L, R)
+i           = u.TranscriptList(args.i, L)
+
+T           = Tester(a, b, i, args.s, args.M, args.t, args.op, args.ot, args.og, args.otr, args.orr, L, R)
+res         = T.test()
+res.dump_results()
+
+R.close()
+

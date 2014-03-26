@@ -1,0 +1,3 @@
+[submodule "patsy"]
+	path = patsy
+	url = ssh://git@bitbucket.org:sbotond/patsy.git

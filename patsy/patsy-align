@@ -1,0 +1,343 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2013 EMBL - European Bioinformatics Institute
+#
+# This program is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# Neither the institution name nor the name patsy
+# can be used to endorse or promote products derived from
+# this software without prior written permission. For
+# written permission, please contact <sbotond@ebi.ac.uk>.
+
+# Products derived from this software may not be called
+# patsy nor may patsy appear in their
+# names without prior written permission of the developers.
+# You should have received a copy of the GNU General Public
+# License along with this program. If not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION="1.1"
+
+import      sys
+sys.path.append("./lib/")
+import      os
+import      argparse
+import      itertools   as      it
+import      HTSeq       as      ht
+import      numpy       as      np
+import      utils       as      u
+import      align       as      aln
+import      re
+import      samtools
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+
+def parse_arguments():
+    """ Parse arguments """
+    parser = argparse.ArgumentParser(description='Align PAT-seq reads using Bowtie2 (%s).' % VERSION)
+    parser.add_argument('-1', metavar='fq1', type=str, default="", help='First FASTQ file.', required=True)
+    parser.add_argument('-2', metavar='fq2', type=str, default="", help='Second FASTQ file.', required=True)
+    parser.add_argument('-f', metavar='ref', type=str, default="", help='Reference fasta.', required=True)
+    parser.add_argument('-o', metavar='outdir', type=str, default="patsy_align", help='Output directory.', required=False)
+    parser.add_argument('-s', metavar='stats_pickle', type=str, default="patsy_align.pk", help='Stats pickle file.', required=False)
+    parser.add_argument('-l', metavar='gtail_sig', type=int, default=14, help='Portion of read start/end used for G-tail classification (14).', required=False)
+    parser.add_argument('-G', metavar='gtag_min', type=int, default=3, help='Minimum G-tag length(3).', required=False)
+    parser.add_argument('-N', metavar='max_N', type=int, default=6, help='Maximum number of Ns in the first -l bases (6).', required=False)
+    parser.add_argument('-I', metavar='min_fsize', type=int, default=0, help='Minimum fragment size (0).', required=False)
+    parser.add_argument('-X', metavar='max_fsize', type=int, default=500, help='Maximum fragment size (500).', required=False)
+    parser.add_argument('-p', metavar='nr_threads', type=int, default=1, help='Number of threads to use (1).', required=False)
+    parser.add_argument('-r', metavar='report', type=str, default="patsy_align.pdf", help='Report PDF.', required=False)
+    
+    args = parser.parse_args()
+    return args
+
+
+stats  = {
+   'total_frags':   0,
+   'g_frags':       0,
+   'n_frags':       0,
+   'g_reads_fwd':   0,
+   'g_reads_rev':   0, 
+}
+
+class PairedFastqParser:
+    """ Simulatneously parse two fastq files """
+    def __init__(self, fq1, fq2, log):
+        self.fq1    = fq1
+        self.fq2    = fq2
+        self.log    = log
+        self.r      = it.izip(ht.FastqReader(fq1), ht.FastqReader(fq2) )
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self.r.next()
+
+class FragClassifier:
+    """ Classify reads and read pairs as G-tail and non-G-tail """
+    def __init__(self, sig_len, min_tag, maxn, stats):
+        self.sig_len        = sig_len
+        self.min_tag        = min_tag
+        self.maxn           = maxn
+        self.FWD_PATTERN    = re.compile("^(N|A)+(N|G){%d,}$" % self.min_tag)
+        self.REV_PATTERN    = re.compile("^(N|C){%d,}(N|T)+$" % self.min_tag)
+        self.stats          = stats
+
+    def is_gtail_read(self,r):
+        if self.FWD_PATTERN.match(r.seq[-self.sig_len:]) is not None: 
+            self.stats['g_reads_fwd'] += 1
+            if r.seq[-self.sig_len:].count('N') > self.maxn:
+                return False
+            return True
+        if self.REV_PATTERN.match(r.seq[:self.sig_len]) is not None:
+            self.stats['g_reads_rev'] += 1
+            if r.seq[:self.sig_len].count('N') > self.maxn:
+                return False
+            return True
+        return False
+
+    def is_gtail_pair(self,p):
+        # only one of the reads can have the gtail signature:
+        return np.logical_xor( self.is_gtail_read(p[0]), self.is_gtail_read(p[1]) )
+
+def split_fastqs(fq1, fq2, l, gt, maxn, stats, d, log):
+    """ Split input fastq files accroding to G-tail classification """
+    d             = d.subdir("split_fqs")
+
+    i             = {}  # Output file names
+    i['rtemp']    = d
+    i['g_fq1']    = os.path.join(d.base,"gtail_reads.fq1")
+    i['g_fq2']    = os.path.join(d.base,"gtail_reads.fq2")
+    i['r_fq1']    = os.path.join(d.base,"nvtr_reads.fq1")
+    i['r_fq2']    = os.path.join(d.base,"nvtr_reads.fq2")
+
+    fo            = {} # Output file handlers
+    fo['g1'], fo['g2']     = open(i['g_fq1'],"w"), open(i['g_fq2'],"w")
+    fo['r1'], fo['r2']    = open(i['r_fq1'],"w"), open(i['r_fq2'],"w")
+    gcls    = FragClassifier(l, gt, maxn, stats)
+
+    for p in PairedFastqParser(fq1, fq2, log):
+        stats['total_frags'] += 1
+        # Got G-tail fragment:
+        if gcls.is_gtail_pair(p):
+            stats['g_frags'] += 1
+            p[0].write_to_fastq_file(fo['g1'])
+            p[1].write_to_fastq_file(fo['g2'])
+        # Not a G-tail fragment:
+        else:
+            stats['n_frags'] += 1
+            p[0].write_to_fastq_file(fo['r1'])
+            p[1].write_to_fastq_file(fo['r2'])
+
+    # Flush & close output file handlers:
+    for ft in fo.itervalues():
+        ft.flush()
+        ft.close()
+    return i
+
+def build_ref(ref, D):
+    """ Index reference transcriptome """
+    ref            = os.path.abspath(ref)
+    ref_rts        = D.subdir("ref")
+    my_ref         = os.path.join(ref_rts.base, os.path.basename(ref))
+    os.symlink(ref,my_ref)
+    aln.Bowtie2.mk_index(my_ref, L)
+    return my_ref
+
+def align_with_opts(fqs, opts, rts, name):
+    """ Align, convert & sort fragments """
+    rts   = rts.subdir(name)
+    a     = aln.Bowtie2(L,ref,rts, fqs, aln_opts=opts, has_index=True, sink_err=False)
+    a.index()
+    sam   = a.sam()
+    # Convert to BAM:
+    t     = samtools.Samtools(L, rts) 
+    bam   = os.path.join(rts.base, u.chext(os.path.basename(sam), "bam") )
+    t.view(sam, bam)
+    sbam  = t.sort(bam)
+    t.index(sbam)
+    os.remove(bam)
+    return sam, sbam
+
+def get_flagstats(bam):
+    """ Get samtools flagstats output """
+    t     = samtools.Samtools(L, D) 
+    return t.flagstat(bam)
+
+def log_stats(s, l):
+    """ Log parse statistics """
+    l.log("Total fragments: %d" % s['total_frags'])
+    l.log("NVTR fragments: %d" % s['n_frags'])
+    l.log("G-tail fragments: %d" % s['g_frags'])
+    l.log("Forward G-tail reads: %d" % s['g_reads_fwd'])
+    l.log("Reverse G-tail reads: %d" % s['g_reads_rev'])
+
+def log_flagstats(s,l):
+    """ Log flagstats """
+    l.log("Flagstats:")
+    l.log("--------------------------------------------")
+    l.log("\n%s" % s)
+    l.log("--------------------------------------------")
+
+def plot_stats(s, r):
+    """ Plot flagstats """
+    # cNorm  = colors.Normalize(vmin=0, vmax=3)
+    
+    # scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+    # cls = scalarMap.to_rgba(i)
+
+    fig, ax = plt.subplots()
+    # ax1 = plt.subplot(221)
+    # ax2 = plt.subplot(222)
+    # ax3 = plt.subplot(223)
+
+    gl_stats = [ s['total_frags'], s['n_frags'], s['g_frags'] ]
+    gl_bar = ax.bar(range(len(gl_stats)), gl_stats)
+    ax.set_title("Global statistics")
+    ax.set_xticks(range(len(gl_stats)))
+    ax.set_xticklabels(('Total', 'NVTR', 'G-Tail'), rotation=45)
+    plt.close(fig)
+    R.pages.savefig(fig)
+
+    fig, ax = plt.subplots()
+    g_stats = [ s.get('g_read_fwd', 0), s.get('g_reads_rev', 0) ]
+    plt.bar(range(len(g_stats)), g_stats)
+    ax.set_title("G-Tail statistics")
+    ax.set_xticks(range(len(g_stats)))
+    ax.set_xticklabels(('Fwd', 'Rev'), rotation=45)
+    plt.close(fig)
+    R.pages.savefig(fig)
+
+    labels = ['Mismatch', 'Chr mismatch', 'Duplicates', 'Proper pair', 'Read 1', 'Read 2', 'QC', 'Paired']
+    fig, ax = plt.subplots()
+    g_flagstats_lab = sorted(s['g_flagstats'].keys())
+    g_flagstats = [ s['g_flagstats'][k] for k in g_flagstats_lab ]
+    print g_flagstats_lab
+    ax.bar(range(len(g_flagstats)), g_flagstats)
+    ax.set_title("G-Tail flagstats")
+    ax.set_xticks(range(len(g_flagstats)))
+    for tick in ax.xaxis.get_major_ticks():
+        tick.label.set_fontsize(7)
+    ax.set_xticklabels(labels, rotation=45)
+    plt.close(fig)
+    R.pages.savefig(fig)
+
+    fig, ax = plt.subplots()
+    n_flagstats_lab = sorted(s['n_flagstats'].keys())
+    n_flagstats = [ s['n_flagstats'][k] for k in n_flagstats_lab ]
+    ax.bar(range(len(n_flagstats)), n_flagstats)
+    ax.set_title("NVTR flagstats")
+    ax.set_xticks(range(len(n_flagstats)))
+    for tick in ax.xaxis.get_major_ticks():
+        tick.label.set_fontsize(7)
+    ax.set_xticklabels(labels, rotation=45)
+    plt.close(fig)
+    R.pages.savefig(fig)
+
+    # fig, axes = plt.subplots(2, 2, sharex='col', sharey='row')
+    # gl_stats = [ s['total_frags'], s['n_frags'], s['g_frags'] ]
+    # gl_bar = axes[0][0].bar(range(len(gl_stats)), gl_stats)
+    # axes[0][0].set_title("Global statistics")
+    # axes[0][0].set_xticks(range(len(gl_stats)))
+    # axes[0][0].set_xticklabels(('Total', 'G-Tail', 'NVTR'), rotation='vertical')
+
+    # g_stats = [ s.get('g_read_fwd', 0), s.get('g_reads_rev', 0) ]
+    # axes[0][1].bar(range(len(g_stats)), g_stats)
+    # axes[0][1].set_title("G-Tail statistics")
+    # axes[0][1].set_xticks(range(len(g_stats)))
+    # axes[0][1].set_xticklabels(('Fwd', 'Rev'))
+
+    # g_flagstats_lab, g_flagstats = s['g_flagstats'].keys(), s['g_flagstats'].values()
+    # axes[1][0].bar(range(len(g_flagstats)), g_flagstats)
+    # axes[1][0].set_title("G-Tail flagstats")
+    # axes[1][0].set_xticks(range(len(g_flagstats)))
+    # axes[1][0].set_xticklabels(g_flagstats_lab, rotation='vertical')
+
+    # n_flagstats_lab, n_flagstats = s['n_flagstats'].keys(), s['n_flagstats'].values()
+    # axes[1][1].bar(range(len(n_flagstats)), n_flagstats)
+    # axes[1][1].set_title("NVTR flagstats")
+    # axes[1][1].set_xticks(range(len(n_flagstats)))
+    # axes[1][1].set_xticklabels(n_flagstats_lab, rotation='vertical')
+
+    # plt.close(fig)
+    # R.pages.savefig(fig)
+
+
+def mk_outdir(d, log):
+    """ Create output directory """
+    if not os.path.exists(d):
+        os.makedirs(d)
+    D           = u.Rtemp(d, log)
+    return D
+
+def log_input(a, l):
+    """ Log input and output files """
+    l.log("Fastq 1: %s" % a.__dict__['1'])
+    l.log("Fastq 2: %s" % a.__dict__['2'])
+    l.log("Output directory: %s" % a.o)
+    l.log("Read portion used when classifying: %s" % a.l)
+    l.log("Minimum tag length: %s" % a.G)
+    l.log("Maximum number of Ns in the first %d bases: %d" % (a.l, a.N))
+            
+args        = parse_arguments()
+L           = u.Log()
+log_input(args, L)
+R           = u.Report(args.r)
+D           = mk_outdir(args.o, L)
+
+L.log("Classifying read pairs.")
+fqi     = split_fastqs(args.__dict__['1'], args.__dict__['2'], args.l, args.G, args.N, stats, D, L)
+
+log_stats(stats, L)
+
+L.log("Indexing reference.")
+ref     = build_ref(args.f, D)
+
+L.log("Aligning G-tailed reads.")
+gtail_opts  = {
+    '--ignore-quals': None,
+    '--sensitive': None,
+    '-p': str(args.p),
+    '-I': str(args.I),
+    '-X': str(args.X),
+    '--no-contain': None
+}
+gtail_sam, gtail_bam   = align_with_opts([ fqi['g_fq1'], fqi['g_fq2'] ], gtail_opts, D, "gtail_aln")
+L.log("G-tail alignments are at: %s" % gtail_sam)
+L.log("Position-sorted G-tail alignments are at: %s" % gtail_bam)
+stats['g_flagstats'] = get_flagstats(gtail_bam)
+log_flagstats(stats['g_flagstats'], L)
+
+
+L.log("Aligning NVTR reads.")
+nvtr_opts  = {
+    '--ignore-quals': None,
+    '--sensitive-local': None,
+    '-p': str(args.p),
+    '-I': str(args.I),
+    '-X': str(args.X),
+    '--no-mixed': None,
+    '--no-discordant': None,
+    '--no-contain': None
+}
+nvtr_sam, nvtr_bam = align_with_opts([ fqi['r_fq1'], fqi['r_fq2'] ], nvtr_opts, D, "nvtr_aln")
+L.log("NVTR alignments are at: %s" % nvtr_sam)
+L.log("Position-sorted NVTR alignments are at: %s" % nvtr_bam)
+stats['n_flagstats'] = get_flagstats(nvtr_bam)
+
+plot_stats(stats, R)
+R.close()
+
+u.pickle(stats, args.s)

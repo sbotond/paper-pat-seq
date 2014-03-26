@@ -1,0 +1,276 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2013 EMBL - European Bioinformatics Institute
+#
+# This program is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# Neither the institution name nor the name patsy
+# can be used to endorse or promote products derived from
+# this software without prior written permission. For
+# written permission, please contact <sbotond@ebi.ac.uk>.
+
+# Products derived from this software may not be called
+# patsy nor may patsy appear in their
+# names without prior written permission of the developers.
+# You should have received a copy of the GNU General Public
+# License along with this program. If not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION="1.0"
+
+import      sys
+sys.path.append("./lib/")
+import      os
+import      argparse
+import numpy as np
+import      matplotlib
+matplotlib.use('PDF')
+
+from Bio.Seq import Seq
+from        collections import  defaultdict
+import      itertools   as      it
+import      HTSeq       as      ht
+import      numpy       as      np
+import      warnings
+import      utils       as      u
+import      re
+
+def parse_arguments():
+    """ Parse arguments """
+    parser = argparse.ArgumentParser(description='Estimate the number of sequencing errors in runs of bases (%s).' % VERSION)
+    parser.add_argument('-n', metavar='spike_sam', type=str, default="", help='SAM file containing NVTR alignments.', required=True)
+    parser.add_argument('-f', metavar='ref', type=str, default="", help='Reference fasta with the spike-in sequences.', required=True)
+    parser.add_argument('-w', metavar='window', type=int, default=10, help='Size of the flanking sequence around the run of As.', required=False)
+    parser.add_argument('-m', metavar='max_errors_plot', type=int, default=5, help='Maximum number of errors for which to plot the length distribution.')
+    parser.add_argument('-o', metavar='out_pickle', type=str, default="patsy_spike.pk", help='Output pickle file.', required=False)
+    parser.add_argument('-q', metavar='min_q', type=int, default=30, help='Mapping quality treshold (30).', required=False)
+    parser.add_argument('-r', metavar='report', type=str, default="patsy_spike.pdf", help='Report PDF.', required=False)
+    parser.add_argument('-l', metavar='read_len', type=int, default=101, help='Read length.')
+    parser.add_argument('-pk', metavar='pickle', type=str, default="error_model.pk", help='Result pickle file.')
+
+    args = parser.parse_args()
+    return args
+
+
+A_run_RE = re.compile("A+")
+
+class SpikeinParser:
+    """ Parse spikein reads and estimate error rates """
+    def __init__(self, infile, ref, window_size, max_errors, min_qual, read_len, report, log):
+        self.ref        =   ref
+        self.infile     =   infile
+        self.window_size = window_size
+        self.max_errors = max_errors
+        self.min_qual   =   min_qual
+        self.read_len   =   read_len
+        self.log        =   log
+        self.report     =   report
+        self.read_iter  =   self.open_iter()
+        self.g_cov      =   {}
+        self.a_runs     =   {}
+
+        self.flanks = {}
+
+        # FIXME Isn't the number of errors likely to be related to the position within the read?
+
+        # Find the longest stretch of As in each spikein sequence
+        for name, seq in ref.items():
+            max_span = (0, 0)
+            for m in A_run_RE.finditer(seq):
+                span = m.span()
+
+                if span[1] - span[0] > max_span[1] - max_span[0]:
+                    max_span = span
+
+            assert max_span[1] > max_span[0]
+            assert max_span[0] > window_size
+            assert len(ref[name]) - max_span[1] > window_size
+
+            span_len = max_span[1] - max_span[0]
+
+            # Slice out the flanking sequence before and after the run of As
+            l = max_span[0] - window_size
+            h = max_span[0]
+            flank_start = self.ref[name][l:h]
+
+            l = max_span[1]
+            h = max_span[1] + window_size
+            flank_end = self.ref[name][l:h]
+
+            self.add_flank_pair(flank_start, flank_end, name, span_len, True)
+
+            # Add the reverse complements as a separate entry
+            flank_end_rev = str(Seq(flank_start).reverse_complement())
+            flank_start_rev = str(Seq(flank_end).reverse_complement())
+
+            self.add_flank_pair(flank_start_rev, flank_end_rev, name, span_len, False)
+
+        self.run_len = max([ fl_[1] for fl in self.flanks.values() for fl_ in fl  ])
+        self.error_counts = []
+        self.error_dists = [ [] for _ in range(self.max_errors) ] 
+
+    def add_flank_pair(self, fl_start, fl_end, name, span_len, for_strand):
+        if fl_start not in self.flanks:
+            self.flanks[fl_start] = [ (name, span_len, fl_end, for_strand) ]
+        else:
+            self.flanks[fl_start].append( (name, span_len, fl_end, for_strand) )
+
+    def open_iter(self):
+        """ Open SAM iterator """
+        if self.infile == "-":
+            self.infile = ht.FileOrSequence(sys.stdin)
+        return ht.SAM_Reader(self.infile)
+
+    def next_pair(self):
+        """ Get next read pair """
+        for (first, second) in ht.pair_SAM_alignments(self.read_iter):
+            yield (first, second)
+
+    def iter_frags(self):
+        """ Get next fragment """
+        min_qual    = self.min_qual
+
+        for pair in self.next_pair():
+            # Missing mate:
+            if (pair[0] == None) or (pair[1] == None):
+                print "Missing mate"
+                continue
+            # Unpaired read:
+            elif (not pair[0].paired_end ) or (not pair[1].paired_end):
+                print "Unpaired"
+                self.log.fatal("Unpaired read found in alignment!")
+            # Both reads are aligned:
+            # elif (pair[0].aligned ) and (pair[1].aligned):
+            #     continue
+            # Proper pair:
+            elif (not pair[0].proper_pair ) or (not pair[1].proper_pair):
+                print "Improper pair"
+                continue
+            # Either read unaligned:
+            elif (not pair[0].aligned ) or (not pair[1].aligned):
+                print "Unaligned"
+                continue
+            
+            # Ignore the quality check for now
+            # Check if anchor has bad mapping quality:
+            # elif pair[0].aQual < min_qual or pair[1].aQual < min_qual:
+            #     print "Bad quality"
+            #     continue
+
+            # Consider using better data structures for parsing:
+            yield pair # read & iv
+
+    def reg_errors(self, run, run_len, for_strand):
+        nt = 'A' if for_strand else 'T'
+        self.error_counts.append(len(run[:run_len])-run[:run_len].count(nt))
+
+        n_errors = 0
+        for i, x in enumerate(run):
+            if x != nt:
+                if n_errors >= self.max_errors:
+                    break
+
+                self.error_dists[n_errors].append(i)
+                n_errors += 1
+
+    def error_model(self):
+        self.error_counts.sort()
+        
+        n_errors = np.round(np.mean(self.error_counts)*self.read_len/self.run_len)
+        return n_errors
+
+    def parse_frags(self):
+        self.open_iter()
+        # Catch and supress HTSeq warnings: 
+        original_filters = warnings.filters[:]
+        warnings.simplefilter("ignore")
+        # Iterate over fragments:
+        total, found = 0, 0
+        try:
+            for pair in self.iter_frags():
+                total += 1
+                for r in pair:
+                    seq = r.read.seq
+                    for flank_start in self.flanks.keys():
+                        start_pos = seq.find(flank_start)
+                        if start_pos > 0:
+                            # found += 1
+
+                            for fl_record in self.flanks[flank_start]:
+                                name, span_len, flank_end, for_strand = fl_record
+
+                                end_pos = seq.find(flank_end)
+                                if end_pos > 0:
+                                    assert end_pos > start_pos
+                                    start, end = start_pos + self.window_size, end_pos
+                                else:
+                                    start = start_pos + self.window_size
+                                    end = start_pos+self.window_size+span_len
+                                    
+                                    if end >= len(seq):
+                                        continue
+
+                                found += 1
+                                ## We DON'T use the end to delimit the run for now!
+                                a_run = seq[start:]
+
+                                self.reg_errors(a_run, span_len, for_strand)
+                                break
+                                    
+        finally:
+            # Restore the list of warning filters.
+            warnings.filters = original_filters
+
+    def plot_report(self):
+        self.report.plot_hist(self.error_counts, title="Number of errors in the 'A' run", xlab="# errors", ylab="Counts")
+
+        for i, error_dist in enumerate(self.error_dists):
+            self.report.plot_hist_with_readlen(error_dist, title="Run length until {} errors".format(i+1), 
+                                               xlab="Run length", ylab="Counts", run_len=self.run_len)
+                               
+
+def dict2v(d,tr,l):
+    """ Linearise subdictionary into a numpy array """
+    v   = np.zeros( (l), dtype=int)
+    if tr not in d:
+        return v
+    for pos, cov in d[tr].iteritems():
+        v[pos] = cov
+    return v
+
+def log_args(a,l):
+    """ Log some input info """
+
+    l.log("Dataset ID: %s" % a.d)
+    l.log("G-tail SAM: %s" % a.g)
+    l.log("NVTR SAM: %s" % a.n)
+    l.log("Read length used when classifying: %s" % a.l)
+    l.log("List of target transcripts: %s" % a.i)
+    l.log("Minimum mapping quality: %s" % a.q)
+
+
+args        = parse_arguments()
+L           = u.Log()
+# log_args(args, L)
+R           = u.Report(args.r)
+ref         = u.Fasta(args.f).slurp()
+
+sp          = SpikeinParser(args.n, ref, args.w, args.m, args.q, args.l, R, L)
+sp.parse_frags()
+sp.plot_report()
+
+# L.log("Pickling results.")
+# u.pickle(sp.error_model(), args.pk)
+print sp.error_model()
+
+R.close()

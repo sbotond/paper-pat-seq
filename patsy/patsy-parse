@@ -1,0 +1,432 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2013 EMBL - European Bioinformatics Institute
+#
+# This program is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# This program is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# Neither the institution name nor the name patsy
+# can be used to endorse or promote products derived from
+# this software without prior written permission. For
+# written permission, please contact <sbotond@ebi.ac.uk>.
+
+# Products derived from this software may not be called
+# patsy nor may patsy appear in their
+# names without prior written permission of the developers.
+# You should have received a copy of the GNU General Public
+# License along with this program. If not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION="1.1"
+
+import      sys
+sys.path.append("./lib/")
+import      os
+import      argparse
+import      string
+import      matplotlib
+matplotlib.use('PDF')
+from        collections import  defaultdict
+import      itertools   as      it
+import      HTSeq       as      ht
+import      numpy       as      np
+import      warnings
+import      utils       as      u
+import      re
+
+
+def parse_arguments():
+    """ Parse arguments """
+    parser = argparse.ArgumentParser(description='Parse classified and aligned PAT-seq read pairs (%s).' % VERSION)
+    parser.add_argument('-g', metavar='gtail_sam', type=str, default="", help='SAM file containing G-tail alignments.', required=True)
+    parser.add_argument('-n', metavar='nvtr_sam', type=str, default="", help='SAM file containing NVTR alignments.', required=True)
+    parser.add_argument('-d', metavar='dataset_id', type=str, help='Dataset identifier.', required=True)
+    parser.add_argument('-f', metavar='ref', type=str, default="", help='Reference fasta.', required=True)
+    parser.add_argument('-l', metavar='gtail_sig', type=int, default=14, help='Portion of read start/end used for G-tail classification.', required=False)
+    parser.add_argument('-G', metavar='gtag_min', type=int, default=3, help='Minimum G-tag length(3).', required=False)
+    parser.add_argument('-N', metavar='max_N', type=int, default=6, help='Maximum number of Ns in the first -l bases (6).', required=False)
+    parser.add_argument('-e', metavar='err_tol', type=int, default=2, help='Number of errors tolerated in the tail.', required=False)
+    parser.add_argument('-o', metavar='out_pickle', type=str, default="patsy_parse.pk", help='Output pickle file.', required=False)
+    parser.add_argument('-i', metavar='tr_list', type=str, default=None, help='List of transcripts considered.', required=False)
+    parser.add_argument('-q', metavar='min_q', type=int, default=30, help='Mapping quality treshold (30).', required=False)
+    parser.add_argument('-r', metavar='report', type=str, default="patsy_parse.pdf", help='Report PDF.', required=False)
+    parser.add_argument('-t', action='store_true' ,default=False, help='Plot per-transcript coverage reports.')
+    args = parser.parse_args()
+    return args
+
+
+class NvtrParser:
+    """ Parse NVTR fragments """
+    def __init__(self, infile, si, min_qual, report, log):
+        self.si         =   si
+        self.infile     =   infile
+        self.min_qual   =   min_qual
+        self.log        =   log
+        self.report     =   report
+        self.read_iter  =   self.open_iter()
+        self.frag_dist  =   {}
+        self.n_cov      =   {}
+        self.mapqs      =   {}
+
+    def open_iter(self):
+        """ Open SAM iterator """
+        if self.infile == "-":
+            self.infile = ht.FileOrSequence(sys.stdin)
+        return ht.SAM_Reader(self.infile)
+
+    def next_pair(self):
+        """ Get next read pair """
+        for (first, second) in ht.pair_SAM_alignments(self.read_iter):
+            yield (first, second)
+
+    def reg_mapq(self, q):
+        """ Register mapping quality """
+        self.mapqs.setdefault(q,0.0)        
+        self.mapqs[q] += 1
+
+    def iter_frags(self):
+        """ Get next fragment """
+        min_qual    = self.min_qual
+        for pair in self.next_pair():
+            # Missing mate:
+            if (pair[0] == None) or (pair[1] == None):
+                continue
+            # Unpaired read:
+            elif (not pair[0].paired_end ) or (not pair[1].paired_end):
+                self.log.fatal("Unpaired read found in alignment!")
+            # Not a proper pair:
+            elif (not pair[0].proper_pair ) or (not pair[1].proper_pair):
+                continue
+            # One of the reads is not aligned:
+            elif (not pair[0].aligned ) or (not pair[1].aligned):
+                continue
+            elif (not pair[0].proper_pair ) or (not pair[1].proper_pair):
+                continue
+            # Mismatching reference:
+            elif pair[0].iv.chrom != pair[1].iv.chrom:
+                continue
+            # Register mapping qualities:
+            self.reg_mapq(pair[0].aQual)
+            self.reg_mapq(pair[1].aQual)
+            # One of the reads has low mapping quality:
+            if pair[0].aQual < min_qual or pair[1].aQual < min_qual:
+                continue
+
+            # Pull out useful info:
+            chrom           =   pair[0].iv.chrom
+            start, end      =   None, None
+            strand          =   "+"
+
+            # Not on transcript list:
+            if not self.si.in_list(chrom):
+                continue
+
+            # First read maps downstream:
+            if  pair[0].iv.start < pair[1].iv.start:
+                start       =   pair[0].iv.start
+                end         =   pair[1].iv.end
+            else:
+            # First read maps upstream:
+                strand      =   "-"
+                start       =   pair[1].iv.start
+                end         =   pair[0].iv.end
+            
+            frag = (chrom, start, end, strand)
+            yield frag
+
+    def reg_fsize(self, fs):
+        """ Register fragment size """
+        self.frag_dist[fs] = self.frag_dist.get(fs,0) + 1
+
+    def reg_frag(self, f):
+        """ Register fragment """
+        tr, start   = f[0], f[1]
+        self.n_cov.setdefault(tr,{}).setdefault(start,0)
+        self.n_cov[tr][start] += 1
+
+    def parse_frags(self):
+        """ Parse fragments """
+        self.open_iter()
+        # Catch and supress HTSeq warnings: 
+        original_filters = warnings.filters[:]
+        warnings.simplefilter("ignore")
+        # Iterate over fragments:
+        try:
+            for f in self.iter_frags():
+                self.reg_fsize( f[2]-f[1] )
+                self.reg_frag( f )
+        finally:
+            # Restore the list of warning filters.
+            warnings.filters = original_filters
+
+    def plot_mapqs(self):
+        """ Plot mapping quality histogram """
+        self.report.plot_hash(self.mapqs, title="NVTR mapping qualities (both ends)",xlab="Mapping quality",ylab="Count")
+
+    def plot_report(self):
+        self.plot_frag_dist()
+        self.plot_mapqs()
+
+    def plot_frag_dist(self):
+        self.report.plot_hash(self.frag_dist, title="Fragment size distribution", xlab="Fragment size", ylab="Count")
+
+class ReadClassifier:
+    """ Figure out whether read potentially has a G-tail """
+    def __init__(self, sig_len, min_tag, maxn):
+        self.sig_len        = sig_len
+        self.min_tag        = min_tag
+        self.maxn           = maxn
+        self.FWD_PATTERN    = re.compile("^(N|A)+(N|G){%d,}$" % self.min_tag)
+        self.REV_PATTERN    = re.compile("^(N|C){%d,}(N|T)+$" % self.min_tag)
+
+    def is_gtail(self,r):
+        """ Classify read by G-tail """
+        if self.FWD_PATTERN.match(r[-self.sig_len:]) is not None:
+            if r[-self.sig_len:].count('N') > self.maxn:
+                return False
+            return 'A'
+        if self.REV_PATTERN.match(r[:self.sig_len]) is not None:
+            if r[:self.sig_len].count('N') > self.maxn:
+                return False
+            return 'T'
+        return False
+    
+
+class GtailParser:
+    """ Parse G-tail fragments """
+    def __init__(self, infile, si, tail_sig, min_tag, maxn, err_tol, min_qual, report, log):
+        self.si         =   si
+        self.tail_sig   =   tail_sig
+        self.min_tag    =   min_tag
+        self.maxn       =   maxn
+        self.err_tol    =   err_tol
+        self.infile     =   infile
+        self.min_qual   =   min_qual
+        self.log        =   log
+        self.report     =   report
+        self.read_iter  =   self.open_iter()
+        self.g_cov      =   {}
+        self.g_runs     =   {}
+        self.mapqs      =   {}
+        # Table defining the G/C tail:
+        self.ttab       =   {
+                'A': ('G','N'),
+                'T': ('C','N')
+            }
+
+    def open_iter(self):
+        """ Open SAM iterator """
+        if self.infile == "-":
+            self.infile = ht.FileOrSequence(sys.stdin)
+        return ht.SAM_Reader(self.infile)
+
+    def next_pair(self):
+        """ Get next read pair """
+        for (first, second) in ht.pair_SAM_alignments(self.read_iter):
+            yield (first, second)
+
+    def reg_mapq(self, q):
+        """ Register mapping quality """
+        self.mapqs.setdefault(q,0.0)        
+        self.mapqs[q] += 1
+
+    def iter_frags(self):
+        """ Get next fragment """
+        min_qual    = self.min_qual
+        gcls        = ReadClassifier(self.tail_sig, self.min_tag, self.maxn)
+        for pair in self.next_pair():
+            # Missing mate:
+            if (pair[0] == None) or (pair[1] == None):
+                continue
+            # Unpaired read:
+            elif (not pair[0].paired_end ) or (not pair[1].paired_end):
+                self.log.fatal("Unpaired read found in alignment!")
+            # Both reads are aligned:
+            elif (pair[0].aligned ) and (pair[1].aligned):
+                continue
+            # Proper pair:
+            elif (pair[0].proper_pair ) or (pair[1].proper_pair):
+                continue
+            # Both reads are unaligned:
+            elif (not pair[0].aligned ) and (not pair[1].aligned):
+                continue
+
+            if pair[0].aligned:
+                anchor  = pair[0]
+                tail    = pair[1]
+            else:
+                anchor  = pair[1]
+                tail    = pair[0]
+
+            # Not on transcript list:
+            if not self.si.in_list(anchor.iv.chrom):
+                continue
+
+            # Check if unmapped read indeed has a G-tail:
+            g_type  = gcls.is_gtail(tail.read.seq)
+            if not g_type:
+                continue
+
+            # Register mapping quality:
+            self.reg_mapq(anchor.aQual)
+            # Check if anchor has bad mapping quality:
+            if anchor.aQual < min_qual:
+                continue
+
+            # Consider using better data structures for parsing:
+            yield ( (anchor.iv.chrom, min(anchor.iv.start, anchor.iv.end)), tail.read.seq, g_type )
+
+    def reg_anchor(self, a):
+        """ Register anchor postion """
+        tr, pos = a[0], a[1]
+        self.g_cov.setdefault(tr,{}).setdefault(pos,0) 
+        self.g_cov[tr][pos] += 1
+
+    def trim_start(self,s,chars):
+        """ Remove the matching bases from the beginning of s string """
+        tmp = ''.join(chars)
+        return string.lstrip(s,tmp)
+        
+    def tail_run(self, t,g_type ):
+        # Reverse tail if orientation is forward:
+        tail    = t if g_type == 'A' else t
+        tail    = self.trim_start(tail, self.ttab[g_type]) 
+        # Count A/Ts until maximum number of errors
+        # is reached:
+        errors  = 0 
+        for i, base in enumerate(tail):
+            if base not in (g_type,'N'):
+                errors += 1
+            if errors > (self.err_tol + 1):
+                break
+        return i
+
+    def reg_tail_run(self, tr, t, g_type):
+        """ Register tail size """
+        run = self.tail_run(t, g_type)
+        self.g_runs.setdefault(tr,{}).setdefault(run,0)
+        self.g_runs[tr][ run ] +=1
+
+    def parse_frags(self):
+        self.open_iter()
+        # Catch and supress HTSeq warnings: 
+        original_filters = warnings.filters[:]
+        warnings.simplefilter("ignore")
+        # Iterate over fragments:
+        try:
+            for a,t, g_type in self.iter_frags():
+                self.reg_anchor(a)
+                self.reg_tail_run(a[0],t,g_type)
+        finally:
+            # Restore the list of warning filters.
+            warnings.filters = original_filters
+
+    def plot_mapqs(self):
+        """ Plot mapping quality histogram """
+        self.report.plot_hash(self.mapqs, title="G-tail mapping qualities (anchor only)",xlab="Mapping quality",ylab="Count")
+
+    def global_tail_runs(self):
+        """ Return all tail runs in a numpy array """
+        a = np.array([])
+        for grs in self.g_runs.itervalues():
+            b = [ ]
+            for l, nr in grs.iteritems():
+                b.extend([l] * nr)
+            b = np.array(b)
+            a = np.concatenate([a,b])
+        return a
+
+    def plot_global_tail_runs(self):
+        """ Plot global tail run distribution """
+        a   = self.global_tail_runs()
+        mean = np.mean(a)
+        self.log.log("Mean tail run length: %g" % mean)
+        self.report.plot_hist(a,title="Global tail run distribution", xlab="Length", ylab="Count", )
+
+    def plot_report(self):
+        """ Plot global reports """
+        self.plot_mapqs()
+        self.plot_global_tail_runs()
+
+def dict2v(d,tr,l):
+    """ Linearise subdictionary into a numpy array """
+    v   = np.zeros( (l), dtype=int)
+    if tr not in d:
+        return v
+    for pos, cov in d[tr].iteritems():
+        v[pos] = cov
+    return v
+
+def tr_cov_report(g_cov, g_runs, n_cov, trl, report):
+    """ Per-transcript coverage report """
+    trs = set( g_cov.iterkeys() ).union( n_cov.iterkeys() )
+    for tr in trs:
+        l   = trl[tr]
+        gv  = dict2v(g_cov, tr,l)
+        nv  = dict2v(n_cov, tr,l)
+
+        report.plot_tails(tr, nv, gv, g_runs)
+
+def log_args(a,l):
+    """ Log some input info """
+    l.log("Dataset ID: %s" % a.d)
+    l.log("G-tail SAM: %s" % a.g)
+    l.log("NVTR SAM: %s" % a.n)
+    l.log("Read portion used when classifying: %s" % a.l)
+    l.log("Minimum tag length: %s" % a.G)
+    l.log("Maximum number of Ns in the first %d bases: %d" % (a.l, a.N))
+    l.log("List of traget transcripts: %s" % a.i)
+    l.log("Minimum mapping quality: %s" % a.q)
+
+
+args        = parse_arguments()
+L           = u.Log()
+log_args(args, L)
+R           = u.Report(args.r)
+ref         = u.Fasta(args.f).slurp()
+trl         = dict( (tr,len(s)) for (tr,s) in ref.iteritems() )
+trw         = u.TranscriptList(args.i, L)
+
+
+nrp          = NvtrParser(args.n, trw, args.q, R, L)
+nrp.parse_frags()
+nrp.plot_report()
+
+gp          = GtailParser(args.g, trw, args.l, args.G, args.N, args.e, args.q, R, L)
+gp.parse_frags()
+gp.plot_report()
+
+res = {
+    'name': args.d,
+    'g': { 
+            'file':    args.g,
+            'cov':     gp.g_cov,
+            'runs':    gp.g_runs,
+            'map_quals': gp.mapqs,
+      },
+    'n': {
+        'file':        args.n,
+        'cov':         nrp.n_cov,
+        'frag_dist':   nrp.frag_dist,
+        'map_quals':   nrp.mapqs,
+     },
+    'trl':             trl
+}
+
+L.log("Pickling results.")
+u.pickle(res, args.o)
+
+L.log("Plotting transcript reports.")
+if args.t:
+    tr_cov_report(gp.g_cov, gp.g_runs, nrp.n_cov, trl, R)
+    pass
+R.close()

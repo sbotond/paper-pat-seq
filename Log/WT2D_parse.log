@@ -1,0 +1,12 @@
+[14-03-10 16:07:1394467657] Dataset ID: WT2D
+[14-03-10 16:07:1394467657] G-tail SAM: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2D/gtail_aln/gtail_reads.sam
+[14-03-10 16:07:1394467657] NVTR SAM: /nfs/research2/goldman/botond/paper-pat-seq/Aln/WT2D/nvtr_aln/nvtr_reads.sam
+[14-03-10 16:07:1394467657] Read portion used when classifying: 14
+[14-03-10 16:07:1394467657] Minimum tag length: 3
+[14-03-10 16:07:1394467657] Maximum number of Ns in the first 14 bases: 6
+[14-03-10 16:07:1394467657] List of traget transcripts: /nfs/research2/goldman/botond/paper-pat-seq/Aln/reference/genes_single_iso.tab
+[14-03-10 16:07:1394467657] Minimum mapping quality: 30
+[14-03-10 16:07:1394467658] Number of target transcripts specified: 6385
+[14-03-10 16:29:1394468959] Mean tail run length: 46.2309
+[14-03-10 16:29:1394468959] Pickling results.
+[14-03-10 16:29:1394468959] Plotting transcript reports.
