@@ -6,6 +6,11 @@ Reference
 
 - TODO
 
+Details of the experiment
+-------------------------
+
+- TODO
+
 Using the pipeline
 ------------------
 
