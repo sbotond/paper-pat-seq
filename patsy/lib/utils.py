@@ -137,9 +137,10 @@ class Report:
             bins  = np.hstack((bn,bp))
 
         if force_int:
-            u = int(max( np.max(a), np.max(b)))
-            l = int(min( np.min(a), np.min(b)))
-            bins=range(l,u)
+            if len(a) != 0 and len(b) != 0:
+                u = int(max( np.max(a), np.max(b)))
+                l = int(min( np.min(a), np.min(b)))
+                bins=range(l,u)
 
         plt.hold(True)
         if len(a) > 0:
