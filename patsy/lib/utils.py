@@ -122,7 +122,7 @@ class Report:
         plt.axvline(run_len, color="red")
         self.finalise_plot(fig)
 
-    def plot_double_hists(self,a,b,title="",lab1="1",lab2="2",xlab="",ylab="",bins=100,acol="blue",bcol="red",alpha=0.5,stacked=False,center_zero=False,normed=False,mark_means=False):
+    def plot_double_hists(self,a,b,title="",lab1="1",lab2="2",xlab="",ylab="",bins=100,acol="blue",bcol="red",alpha=0.5,stacked=False,center_zero=False,normed=False,mark_means=False,force_int=True):
         """ Overlayed plot of two histograms """
         a=np.array(a)
         b=np.array(b)
@@ -135,6 +135,11 @@ class Report:
             bp = np.arange(0,u,2.0/bins)
             bn = np.arange(0,l,-2.0/bins)[1:][::-1]
             bins  = np.hstack((bn,bp))
+
+        if force_int:
+            u = int(max( np.max(a), np.max(b)))
+            l = int(min( np.min(a), np.min(b)))
+            bins=range(l,u)
 
         plt.hold(True)
         if len(a) > 0:
