@@ -1,6 +1,16 @@
 A pipeline to analyse PAT-seq data
 ==================================
 
+Reference
+---------
+
+- TODO
+
+Details of the experiment
+-------------------------
+
+- TODO
+
 Using the pipeline
 ------------------
 
@@ -16,27 +26,10 @@ The pipeline can be used by invoking the following `make` targets:
 - Plot and cluster tail length distributions: `make classify_tail_dists`
 - Correlate thresholded tail lengths with PASTA and PAL-seq: `make corr_with_studies`
 
-Dependencies
-------------
-
-- [Platform LSF](http://en.wikipedia.org/wiki/Platform_LSF)
-- [Python](http://www.python.org/) 2.x
-- [numpy](https://pypi.python.org/pypi/numpy) >= 1.6.2
-- [matplotlib](https://pypi.python.org/pypi/matplotlib) >= 1.1.0
-- [scipy](https://pypi.python.org/pypi/scipy) >= 0.10.1
-- [biopython](https://pypi.python.org/pypi/biopython) >= 1.60
-- [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) >= 2.1.0
-- [samtools](http://samtools.sourceforge.net) >= 0.1.19+
-- [wget](https://www.gnu.org/software/wget/)
-
 Index of selected raw results
-=============================
+-----------------------------
 
-## Quantifying tail length slippage using spike-in standards
-
-- Tail run lengths until the first 1-5 non-A bases in reads mapped to spike-in poly(A) tracts [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/error_thr.pdf)
-
-## Alignment
+### Alignment
 
 |   Sample  |   Alignment log    |      Alignment report       |
 |:---------:|:------------------:|:---------------------------:|
@@ -49,7 +42,7 @@ Index of selected raw results
 | MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_align.pdf) |
 | MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_align.pdf) |
 
-## Parsing alignments
+### Parsing alignments
 
 |   Sample  |   Parse log    |     Parse report       |
 |:---------:|:------------------:|:---------------------------:|
@@ -62,25 +55,43 @@ Index of selected raw results
 | MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.pdf) |
 | MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.pdf) |
 
-## Testing differences between wild type and mutant tail runs
+### Quantifying tail length slippage using spike-in standards
+
+- Tail run lengths until the first 1-5 non-A bases in reads mapped to spike-in poly(A) tracts [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/error_thr.pdf)
+
+
+### Testing differences between wild type and mutant tail runs
 
 |   Comparison  |   Test log    |     Test report       |   Results |
 |:---------:|:------------------:|:---------------------------:|:------------------------------:|
 | WT1 vs. MUT1     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1_trs.tab) |
 | WT2 vs. MUT2     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2_trs.tab) |
 
-## Tail run distributions from all transcripts with G-tail coverage > 1000
+### Tail run distributions from all transcripts with G-tail coverage > 1000
 
 - [WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT1.pdf)
 - [WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT2.pdf)
 - [MUT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT1.pdf)
 - [MUT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT2.pdf)
 
-## Cross-study correlation
+### Cross-study correlation
 
 - [PAL_total vs. WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT1.pdf)
 - [PAL_total vs. WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT2.pdf)
 - [PAL_total vs. PASTA](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_PASTA.pdf)
+
+Dependencies
+------------
+
+- [Platform LSF](http://en.wikipedia.org/wiki/Platform_LSF)
+- [Python](http://www.python.org/) 2.x
+- [numpy](https://pypi.python.org/pypi/numpy) >= 1.6.2
+- [matplotlib](https://pypi.python.org/pypi/matplotlib) >= 1.1.0
+- [scipy](https://pypi.python.org/pypi/scipy) >= 0.10.1
+- [biopython](https://pypi.python.org/pypi/biopython) >= 1.60
+- [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) >= 2.1.0
+- [samtools](http://samtools.sourceforge.net) >= 0.1.19+
+- [wget](https://www.gnu.org/software/wget/)
 
 Using the analysis tools
 -----------------------
