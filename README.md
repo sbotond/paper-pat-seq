@@ -4,12 +4,11 @@ A pipeline to analyse PAT-seq data
 Reference
 ---------
 
-- TODO
+This repository contains the pipeline and raw results described in the manuscript:
 
-Details of the experiment
--------------------------
+- Botond Sipos, Greg Slodkowicz, Adrian M. Stütz, Tim Massingham, Jan Korbel, Nick Goldman: PAT-seq - a high-throughput poly(A) tail length determination assay for the Illumina platform.
 
-- TODO
+Click [here](https://github.com/sbotond/paper-pat-seq/blob/master/ExpInfo/README.md) for more details on the wetlab experiment.
 
 Using the pipeline
 ------------------
