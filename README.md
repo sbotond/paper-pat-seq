@@ -28,6 +28,11 @@ The pipeline can be used by invoking the following `make` targets:
 Index of selected raw results
 -----------------------------
 
+### Illumina reads
+
+Sequencing data are available in the [ArrayExpress database](www.ebi.ac.uk/arrayexpress) under accession number [E-MTAB-2456](http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2456/).
+
+
 ### Alignment
 
 |   Sample  |   Alignment log    |      Alignment report       |
