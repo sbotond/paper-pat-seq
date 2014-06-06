@@ -46,38 +46,38 @@ fetch:
 	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472947/ERR472947_2.fastq.gz;
 
 
-MUT1A_FQ       =   $(DD)/ERR472943_1.fastq.gz
-MUT1A_FQ       =   $(DD)/ERR472943_2.fastq.gz
-MUT1B_FQ       =   $(DD)/ERR472944_1.fastq.gz
-MUT1B_FQ       =   $(DD)/ERR472944_2.fastq.gz
-MUT1C_FQ       =   $(DD)/ERR472935_1.fastq.gz
-MUT1C_FQ       =   $(DD)/ERR472935_2.fastq.gz
-MUT1D_FQ       =   $(DD)/ERR472945_1.fastq.gz
-MUT1D_FQ       =   $(DD)/ERR472945_2.fastq.gz
-MUT2A_FQ       =   $(DD)/ERR472940_1.fastq.gz
-MUT2A_FQ       =   $(DD)/ERR472940_2.fastq.gz
-MUT2B_FQ       =   $(DD)/ERR472933_1.fastq.gz
-MUT2B_FQ       =   $(DD)/ERR472933_2.fastq.gz
-MUT2C_FQ       =   $(DD)/ERR472934_1.fastq.gz
-MUT2C_FQ       =   $(DD)/ERR472934_2.fastq.gz
-MUT2D_FQ       =   $(DD)/ERR472937_1.fastq.gz
-MUT2D_FQ       =   $(DD)/ERR472937_2.fastq.gz
-WT1A_FQ       =   $(DD)/ERR472936_1.fastq.gz
-WT1A_FQ       =   $(DD)/ERR472936_2.fastq.gz
-WT1B_FQ       =   $(DD)/ERR472938_1.fastq.gz
-WT1B_FQ       =   $(DD)/ERR472938_2.fastq.gz
-WT1C_FQ       =   $(DD)/ERR472941_1.fastq.gz
-WT1C_FQ       =   $(DD)/ERR472941_2.fastq.gz
-WT1D_FQ       =   $(DD)/ERR472939_1.fastq.gz
-WT1D_FQ       =   $(DD)/ERR472939_2.fastq.gz
-WT2A_FQ       =   $(DD)/ERR472946_1.fastq.gz
-WT2A_FQ       =   $(DD)/ERR472946_2.fastq.gz
-WT2B_FQ       =   $(DD)/ERR472948_1.fastq.gz
-WT2B_FQ       =   $(DD)/ERR472948_2.fastq.gz
-WT2C_FQ       =   $(DD)/ERR472942_1.fastq.gz
-WT2C_FQ       =   $(DD)/ERR472942_2.fastq.gz
-WT2D_FQ       =   $(DD)/ERR472947_1.fastq.gz
-WT2D_FQ       =   $(DD)/ERR472947_2.fastq.gz
+MUT1A_FQ1       =   $(DD)/ERR472943_1.fastq.gz
+MUT1A_FQ2       =   $(DD)/ERR472943_2.fastq.gz
+MUT1B_FQ1       =   $(DD)/ERR472944_1.fastq.gz
+MUT1B_FQ2       =   $(DD)/ERR472944_2.fastq.gz
+MUT1C_FQ1       =   $(DD)/ERR472935_1.fastq.gz
+MUT1C_FQ2       =   $(DD)/ERR472935_2.fastq.gz
+MUT1D_FQ1       =   $(DD)/ERR472945_1.fastq.gz
+MUT1D_FQ2       =   $(DD)/ERR472945_2.fastq.gz
+MUT2A_FQ1       =   $(DD)/ERR472940_1.fastq.gz
+MUT2A_FQ2       =   $(DD)/ERR472940_2.fastq.gz
+MUT2B_FQ1       =   $(DD)/ERR472933_1.fastq.gz
+MUT2B_FQ2       =   $(DD)/ERR472933_2.fastq.gz
+MUT2C_FQ1       =   $(DD)/ERR472934_1.fastq.gz
+MUT2C_FQ2       =   $(DD)/ERR472934_2.fastq.gz
+MUT2D_FQ1       =   $(DD)/ERR472937_1.fastq.gz
+MUT2D_FQ2       =   $(DD)/ERR472937_2.fastq.gz
+WT1A_FQ1       =   $(DD)/ERR472936_1.fastq.gz
+WT1A_FQ2       =   $(DD)/ERR472936_2.fastq.gz
+WT1B_FQ1       =   $(DD)/ERR472938_1.fastq.gz
+WT1B_FQ2       =   $(DD)/ERR472938_2.fastq.gz
+WT1C_FQ1       =   $(DD)/ERR472941_1.fastq.gz
+WT1C_FQ2       =   $(DD)/ERR472941_2.fastq.gz
+WT1D_FQ1       =   $(DD)/ERR472939_1.fastq.gz
+WT1D_FQ2       =   $(DD)/ERR472939_2.fastq.gz
+WT2A_FQ1       =   $(DD)/ERR472946_1.fastq.gz
+WT2A_FQ2       =   $(DD)/ERR472946_2.fastq.gz
+WT2B_FQ1       =   $(DD)/ERR472948_1.fastq.gz
+WT2B_FQ2       =   $(DD)/ERR472948_2.fastq.gz
+WT2C_FQ1       =   $(DD)/ERR472942_1.fastq.gz
+WT2C_FQ2       =   $(DD)/ERR472942_2.fastq.gz
+WT2D_FQ1       =   $(DD)/ERR472947_1.fastq.gz
+WT2D_FQ2       =   $(DD)/ERR472947_2.fastq.gz
 
 # Wild type datasets:
 
