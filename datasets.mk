@@ -10,74 +10,78 @@ SPIKEINS				=$(BASE)/ExpInfo/spikeins.fas
 
 DD					=$(BASE)/RawData
 
+
+fetch:
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472943/ERR472943_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472943/ERR472943_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472944/ERR472944_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472944/ERR472944_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472935/ERR472935_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472935/ERR472935_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472945/ERR472945_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472945/ERR472945_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472940/ERR472940_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472940/ERR472940_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472933/ERR472933_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472933/ERR472933_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472934/ERR472934_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472934/ERR472934_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472937/ERR472937_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472937/ERR472937_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472936/ERR472936_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472936/ERR472936_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472938/ERR472938_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472938/ERR472938_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472941/ERR472941_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472941/ERR472941_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472939/ERR472939_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472939/ERR472939_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472946/ERR472946_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472946/ERR472946_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472948/ERR472948_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472948/ERR472948_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472942/ERR472942_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472942/ERR472942_2.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472947/ERR472947_1.fastq.gz;
+	wget -P RawData  ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR472/ERR472947/ERR472947_2.fastq.gz;
+
+MUT1A       =   $(DD)/ERR472943_1.fastq.gz
+MUT1A       =   $(DD)/ERR472943_2.fastq.gz
+MUT1B       =   $(DD)/ERR472944_1.fastq.gz
+MUT1B       =   $(DD)/ERR472944_2.fastq.gz
+MUT1C       =   $(DD)/ERR472935_1.fastq.gz
+MUT1C       =   $(DD)/ERR472935_2.fastq.gz
+MUT1D       =   $(DD)/ERR472945_1.fastq.gz
+MUT1D       =   $(DD)/ERR472945_2.fastq.gz
+MUT2A       =   $(DD)/ERR472940_1.fastq.gz
+MUT2A       =   $(DD)/ERR472940_2.fastq.gz
+MUT2B       =   $(DD)/ERR472933_1.fastq.gz
+MUT2B       =   $(DD)/ERR472933_2.fastq.gz
+MUT2C       =   $(DD)/ERR472934_1.fastq.gz
+MUT2C       =   $(DD)/ERR472934_2.fastq.gz
+MUT2D       =   $(DD)/ERR472937_1.fastq.gz
+MUT2D       =   $(DD)/ERR472937_2.fastq.gz
+WT1A        =   $(DD)/ERR472936_1.fastq.gz
+WT1A        =   $(DD)/ERR472936_2.fastq.gz
+WT1B        =   $(DD)/ERR472938_1.fastq.gz
+WT1B        =   $(DD)/ERR472938_2.fastq.gz
+WT1C        =   $(DD)/ERR472941_1.fastq.gz
+WT1C        =   $(DD)/ERR472941_2.fastq.gz
+WT1D        =   $(DD)/ERR472939_1.fastq.gz
+WT1D        =   $(DD)/ERR472939_2.fastq.gz
+WT2A        =   $(DD)/ERR472946_1.fastq.gz
+
 # Wild type datasets:
 
 WT1DS		= WT1A WT1B WT1C WT1D
 WT2DS		= WT2A WT2B WT2C WT2D
 WTDS		= $(WT1DS) $(WT2DS)
 
-# WT Replicate #1
-
-WT1A_FQ1	= $(DD)/lane1polyAGWT1a_1_sequence.txt.gz
-WT1A_FQ2	= $(DD)/lane1polyAGWT1a_2_sequence.txt.gz
-
-WT1B_FQ1	= $(DD)/lane1polyAGWT1b_1_sequence.txt.gz
-WT1B_FQ2	= $(DD)/lane1polyAGWT1b_2_sequence.txt.gz
-
-WT1C_FQ1	= $(DD)/lane1polyAGWT1c_1_sequence.txt.gz
-WT1C_FQ2	= $(DD)/lane1polyAGWT1c_2_sequence.txt.gz
-
-WT1D_FQ1	= $(DD)/lane1polyAGWT1d_1_sequence.txt.gz
-WT1D_FQ2	= $(DD)/lane1polyAGWT1d_2_sequence.txt.gz
-
-# WT Replicate #2
-
-WT2A_FQ1	= $(DD)/lane1polyAGWT2a_1_sequence.txt.gz
-WT2A_FQ2	= $(DD)/lane1polyAGWT2a_2_sequence.txt.gz
-
-WT2B_FQ1	= $(DD)/lane1polyAGWT2b_1_sequence.txt.gz
-WT2B_FQ2	= $(DD)/lane1polyAGWT2b_2_sequence.txt.gz
-
-WT2C_FQ1	= $(DD)/lane1polyAGWT2c_1_sequence.txt.gz
-WT2C_FQ2	= $(DD)/lane1polyAGWT2c_2_sequence.txt.gz
-
-WT2D_FQ1	= $(DD)/lane1polyAGWT2d_1_sequence.txt.gz
-WT2D_FQ2	= $(DD)/lane1polyAGWT2d_2_sequence.txt.gz
-
-
 # Mutant datasets:
 
 MUT1DS		= MUT1A MUT1B MUT1C MUT1D
 MUT2DS		= MUT2A MUT2B MUT2C MUT2D
 MUTDS		= $(MUT1DS) $(MUT2DS)
-
-# MUT replicate #1
-
-MUT1A_FQ1	= $(DD)/lane1polyAGMUT1a_1_sequence.txt.gz 
-MUT1A_FQ2	= $(DD)/lane1polyAGMUT1a_2_sequence.txt.gz
-
-MUT1B_FQ1	= $(DD)/lane1polyAGMUT1b_1_sequence.txt.gz
-MUT1B_FQ2	= $(DD)/lane1polyAGMUT1b_2_sequence.txt.gz
-
-MUT1C_FQ1	= $(DD)/lane1polyAGMUT1c_1_sequence.txt.gz
-MUT1C_FQ2	= $(DD)/lane1polyAGMUT1c_2_sequence.txt.gz
-
-MUT1D_FQ1	= $(DD)/lane1polyAGMUT1d_1_sequence.txt.gz
-MUT1D_FQ2	= $(DD)/lane1polyAGMUT1d_2_sequence.txt.gz
-
-# MUT replicate #2
-
-MUT2A_FQ1	= $(DD)/lane1polyAGMUT2a_1_sequence.txt.gz
-MUT2A_FQ2	= $(DD)/lane1polyAGMUT2a_2_sequence.txt.gz
-
-MUT2B_FQ1	= $(DD)/lane1polyAGMUT2b_1_sequence.txt.gz
-MUT2B_FQ2	= $(DD)/lane1polyAGMUT2b_2_sequence.txt.gz
-
-MUT2C_FQ1	= $(DD)/lane1polyAGMUT2c_1_sequence.txt.gz
-MUT2C_FQ2	= $(DD)/lane1polyAGMUT2c_2_sequence.txt.gz
-
-MUT2D_FQ1	= $(DD)/lane1polyAGMUT2d_1_sequence.txt.gz
-MUT2D_FQ2	= $(DD)/lane1polyAGMUT2d_2_sequence.txt.gz
 
 # All datasets:
 
