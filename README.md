@@ -30,7 +30,7 @@ Index of selected raw results
 
 ### Illumina reads
 
-Sequencing data are available in the [ArrayExpress database](www.ebi.ac.uk/arrayexpress) under accession number [E-MTAB-2456](http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2456/).
+Sequencing data are available in the [ArrayExpress database](http://www.ebi.ac.uk/arrayexpress) under accession number [E-MTAB-2456](http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2456/).
 
 
 ### Alignment
