@@ -37,52 +37,52 @@ Sequencing data are available in the [ArrayExpress database](http://www.ebi.ac.u
 
 |   Sample  |   Alignment log    |      Alignment report       |
 |:---------:|:------------------:|:---------------------------:|
-| MUT1A     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1A_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1A_align.pdf) |
-| MUT1B     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1B_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1B_align.pdf) |
-| MUT1C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1C_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1C_align.pdf) |
-| MUT1D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1D_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1D_align.pdf) |
-| MUT2A     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2A_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2A_align.pdf) |
-| MUT2B     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2B_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2B_align.pdf) |
-| MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_align.pdf) |
-| MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_aln.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_align.pdf) |
+| MUT1A     |  [TXT](http://bit.ly/PAT-seq-MUT1A_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1A_aln_pdf) |
+| MUT1B     |  [TXT](http://bit.ly/PAT-seq-MUT1B_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1B_aln_pdf) |
+| MUT1C     |  [TXT](http://bit.ly/PAT-seq-MUT1C_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1C_aln_pdf) |
+| MUT1D     |  [TXT](http://bit.ly/PAT-seq-MUT1D_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1D_aln_pdf) |
+| MUT2A     |  [TXT](http://bit.ly/PAT-seq-MUT2A_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2A_aln_pdf) |
+| MUT2B     |  [TXT](http://bit.ly/PAT-seq-MUT2B_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2B_aln_pdf) |
+| MUT2C     |  [TXT](http://bit.ly/PAT-seq-MUT2C_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2C_aln_pdf) |
+| MUT2D     |  [TXT](http://bit.ly/PAT-seq-MUT2D_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2D_aln_pdf) |
 
 ### Parsing alignments
 
 |   Sample  |   Parse log    |     Parse report       |
 |:---------:|:------------------:|:---------------------------:|
-| MUT1A     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1A_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1A_parse.pdf) |
-| MUT1B     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1B_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1B_parse.pdf) |
-| MUT1C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1C_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1C_parse.pdf) |
-| MUT1D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1D_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT1D_parse.pdf) |
-| MUT2A     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2A_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2A_parse.pdf) |
-| MUT2B     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2B_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2B_parse.pdf) |
-| MUT2C     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2C_parse.pdf) |
-| MUT2D     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/MUT2D_parse.pdf) |
+| MUT1A     |  [TXT](http://bit.ly/PAT-seq-MUT1A_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1A_parse_pdf) |
+| MUT1B     |  [TXT](http://bit.ly/PAT-seq-MUT1B_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1B_parse_pdf) |
+| MUT1C     |  [TXT](http://bit.ly/PAT-seq-MUT1C_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1C_parse_pdf) |
+| MUT1D     |  [TXT](http://bit.ly/PAT-seq-MUT1D_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1D_parse_pdf) |
+| MUT2A     |  [TXT](http://bit.ly/PAT-seq-MUT2A_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2A_parse_pdf) |
+| MUT2B     |  [TXT](http://bit.ly/PAT-seq-MUT2B_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2B_parse_pdf) |
+| MUT2C     |  [TXT](http://bit.ly/PAT-seq-MUT2C_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2C_parse_pdf) |
+| MUT2D     |  [TXT](http://bit.ly/PAT-seq-MUT2D_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2D_parse_pdf) |
 
 ### Quantifying tail length slippage using spike-in standards
 
-- Tail run lengths until the first 1-5 non-A bases in reads mapped to spike-in poly(A) tracts [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/error_thr.pdf)
+- Tail run lengths until the first 1-5 non-A bases in reads mapped to spike-in poly(A) tracts [PDF](http://bit.ly/PAT-seq_error_thr)
 
 
 ### Testing differences between wild type and mutant tail runs
 
 |   Comparison  |   Test log    |     Test report       |   Results |
 |:---------:|:------------------:|:---------------------------:|:------------------------------:|
-| WT1 vs. MUT1     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT1_vs_MUT1_trs.tab) |
-| WT2 vs. MUT2     |  [TXT](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.log) | [PDF](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2.pdf) | [CSV](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/TEST_WT2_vs_MUT2_trs.tab) |
+| WT1 vs. MUT1     |  [TXT](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_log) | [PDF](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_pdf) | [CSV](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_trs_tab) |
+| WT2 vs. MUT2     |  [TXT](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_log) | [PDF](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_pdf) | [CSV](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_trs_tab) |
 
 ### Tail run distributions from all transcripts with G-tail coverage > 1000
 
-- [WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT1.pdf)
-- [WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_WT2.pdf)
-- [MUT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT1.pdf)
-- [MUT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/CLS_MUT2.pdf)
+- [WT1](http://bit.ly/PAT-seq-CLS_WT1_pdf)
+- [WT2](http://bit.ly/PAT-seq_CLS_WT2_pdf)
+- [MUT1](http://bit.ly/PAT-seq-CLS_MUT1_pdf)
+- [MUT2](http://bit.ly/PAT-seq-CLS_MUT2_pdf)
 
 ### Cross-study correlation
 
-- [PAL_total vs. WT1](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT1.pdf)
-- [PAL_total vs. WT2](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_WT2.pdf)
-- [PAL_total vs. PASTA](http://www.ebi.ac.uk/goldman-srv/pat-seq/Log/PAL_total_vs_PASTA.pdf)
+- [PAL_total vs. WT1](http://bit.ly/PAT_seq_PAL_total_vs_WT1_pdf)
+- [PAL_total vs. WT2](http://bit.ly/PAT-seq_PAL_total_vs_WT2_pdf)
+- [PAL_total vs. PASTA](http://bit.ly/PAT-seq-PAL_total_vs_PASTA_pdf)
 
 Dependencies
 ------------
