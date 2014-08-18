@@ -37,14 +37,14 @@ Sequencing data are available in the [ArrayExpress database](http://www.ebi.ac.u
 
 |   Sample  |   Alignment log    |      Alignment report       |
 |:---------:|:------------------:|:---------------------------:|
-| WT1A     |  [http://bit.ly/PAT-seq-WT1A_aln_log](http://bit.ly/PAT-seq-WT1A_aln_log) | [http://bit.ly/PAT-seq-WT1A_aln_pdf](http://bit.ly/PAT-seq-WT1A_aln_pdf) |
-| WT1B     |  [http://bit.ly/PAT-seq-WT1B_aln_log](http://bit.ly/PAT-seq-WT1B_aln_log) | [http://bit.ly/PAT-seq-WT1B_aln_pdf](http://bit.ly/PAT-seq-WT1B_aln_pdf) |
-| WT1C     |  [http://bit.ly/PAT-seq-WT1C_aln_log](http://bit.ly/PAT-seq-WT1C_aln_log) | [http://bit.ly/PAT-seq-WT1C_aln_pdf`](http://bit.ly/PAT-seq-WT1C_aln_pdf) |
-| WT1D     |  [http://bit.ly/PAT-seq-WT1D_aln_log](http://bit.ly/PAT-seq-WT1D_aln_log) | [http://bit.ly/PAT-seq-WT1D_aln_pdf](http://bit.ly/PAT-seq-WT1D_aln_pdf) |
-| WT2A     |  [http://bit.ly/PAT-seq-WT2A_aln_log](http://bit.ly/PAT-seq-WT2A_aln_log) | [http://bit.ly/PAT-seq-WT2A_aln_pdf](http://bit.ly/PAT-seq-WT2A_aln_pdf) |
-| WT2B     |  [http://bit.ly/PAT-seq-WT2B_aln_log](http://bit.ly/PAT-seq-WT2B_aln_log) | [http://bit.ly/PAT-seq-WT2B_aln_pdf](http://bit.ly/PAT-seq-WT2B_aln_pdf) |
-| WT2C     |  [http://bit.ly/PAT-seq-WT2C_aln_log](http://bit.ly/PAT-seq-WT2C_aln_log) | [http://bit.ly/PAT-seq-WT2C_aln_pdf](http://bit.ly/PAT-seq-WT2C_aln_pdf) |
-| WT2D     |  [http://bit.ly/PAT-seq-WT2D_aln_log](http://bit.ly/PAT-seq-WT2D_aln_log) | [http://bit.ly/PAT-seq-WT2D_aln_pdf](http://bit.ly/PAT-seq-WT2D_aln_pdf) |
+| WT1A     |  [http://bit.ly/PAT-seq-WT1A_aln_log](http://bit.ly/PAT-seq-WT1A_aln_log) | [http://bit.ly/PAT-seq-WT1A_align_pdf](http://bit.ly/PAT-seq-WT1A_align_pdf) |
+| WT1B     |  [http://bit.ly/PAT-seq-WT1B_aln_log](http://bit.ly/PAT-seq-WT1B_aln_log) | [http://bit.ly/PAT-seq-WT1B_align_pdf](http://bit.ly/PAT-seq-WT1B_align_pdf) |
+| WT1C     |  [http://bit.ly/PAT-seq-WT1C_aln_log](http://bit.ly/PAT-seq-WT1C_aln_log) | [http://bit.ly/PAT-seq-WT1C_align_pdf`](http://bit.ly/PAT-seq-WT1C_align_pdf) |
+| WT1D     |  [http://bit.ly/PAT-seq-WT1D_aln_log](http://bit.ly/PAT-seq-WT1D_aln_log) | [http://bit.ly/PAT-seq-WT1D_align_pdf](http://bit.ly/PAT-seq-WT1D_align_pdf) |
+| WT2A     |  [http://bit.ly/PAT-seq-WT2A_aln_log](http://bit.ly/PAT-seq-WT2A_aln_log) | [http://bit.ly/PAT-seq-WT2A_align_pdf](http://bit.ly/PAT-seq-WT2A_align_pdf) |
+| WT2B     |  [http://bit.ly/PAT-seq-WT2B_aln_log](http://bit.ly/PAT-seq-WT2B_aln_log) | [http://bit.ly/PAT-seq-WT2B_align_pdf](http://bit.ly/PAT-seq-WT2B_align_pdf) |
+| WT2C     |  [http://bit.ly/PAT-seq-WT2C_aln_log](http://bit.ly/PAT-seq-WT2C_aln_log) | [http://bit.ly/PAT-seq-WT2C_align_pdf](http://bit.ly/PAT-seq-WT2C_align_pdf) |
+| WT2D     |  [http://bit.ly/PAT-seq-WT2D_aln_log](http://bit.ly/PAT-seq-WT2D_aln_log) | [http://bit.ly/PAT-seq-WT2D_align_pdf](http://bit.ly/PAT-seq-WT2D_align_pdf) |
 | MUT1A     |  [http://bit.ly/PAT-seq-MUT1A_aln_log](http://bit.ly/PAT-seq-MUT1A_aln_log) | [http://bit.ly/PAT-seq-MUT1A_aln_pdf](http://bit.ly/PAT-seq-MUT1A_aln_pdf) |
 | MUT1B     |  [http://bit.ly/PAT-seq-MUT1B_aln_log](http://bit.ly/PAT-seq-MUT1B_aln_log) | [http://bit.ly/PAT-seq-MUT1B_aln_pdf](http://bit.ly/PAT-seq-MUT1B_aln_pdf) |
 | MUT1C     |  [http://bit.ly/PAT-seq-MUT1C_aln_log](http://bit.ly/PAT-seq-MUT1C_aln_log) | [http://bit.ly/PAT-seq-MUT1C_aln_pdf`](http://bit.ly/PAT-seq-MUT1C_aln_pdf) |
