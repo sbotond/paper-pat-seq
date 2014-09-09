@@ -22,6 +22,7 @@ args <- parse_args(OptionParser(option_list = option_list), args = raw_args)
 pdf(args$rep)
 
 raw1 <-read.table(args$d1,header=TRUE,stringsAsFactors=FALSE)
+print(args$d2)
 raw2 <-read.table(args$d2,header=TRUE,stringsAsFactors=FALSE)
 
 lengths1 <-as.numeric(raw1[as.character(args$df1)][[1]])

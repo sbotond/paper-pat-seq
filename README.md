@@ -6,7 +6,7 @@ Reference
 
 This repository contains the pipeline and raw results described in the manuscript:
 
-- Botond Sipos, Greg Slodkowicz, Adrian M. Stütz, Tim Massingham, Jan Korbel, Nick Goldman: *PAT-seq - awhole-transcriptome poly(A) tail length determination assay for the Illumina platform*.
+- Botond Sipos, Adrian M. Stütz, Greg Slodkowicz, Tim Massingham, Jan Korbel, Nick Goldman: *PAT-seq - a whole-transcriptome poly(A) tail length determination assay for the Illumina platform*.
 
 Click [here](https://github.com/sbotond/paper-pat-seq/blob/master/ExpInfo/README.md) for more details on the wetlab experiment.
 
@@ -37,27 +37,43 @@ Sequencing data are available in the [ArrayExpress database](http://www.ebi.ac.u
 
 |   Sample  |   Alignment log    |      Alignment report       |
 |:---------:|:------------------:|:---------------------------:|
-| MUT1A     |  [TXT](http://bit.ly/PAT-seq-MUT1A_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1A_aln_pdf) |
-| MUT1B     |  [TXT](http://bit.ly/PAT-seq-MUT1B_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1B_aln_pdf) |
-| MUT1C     |  [TXT](http://bit.ly/PAT-seq-MUT1C_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1C_aln_pdf) |
-| MUT1D     |  [TXT](http://bit.ly/PAT-seq-MUT1D_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT1D_aln_pdf) |
-| MUT2A     |  [TXT](http://bit.ly/PAT-seq-MUT2A_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2A_aln_pdf) |
-| MUT2B     |  [TXT](http://bit.ly/PAT-seq-MUT2B_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2B_aln_pdf) |
-| MUT2C     |  [TXT](http://bit.ly/PAT-seq-MUT2C_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2C_aln_pdf) |
-| MUT2D     |  [TXT](http://bit.ly/PAT-seq-MUT2D_aln_log) | [PDF](http://bit.ly/PAT-seq-MUT2D_aln_pdf) |
+| WT1A     |  [http://bit.ly/PAT-seq-WT1A_aln_log](http://bit.ly/PAT-seq-WT1A_aln_log) | [http://bit.ly/PAT-seq-WT1A_align_pdf](http://bit.ly/PAT-seq-WT1A_align_pdf) |
+| WT1B     |  [http://bit.ly/PAT-seq-WT1B_aln_log](http://bit.ly/PAT-seq-WT1B_aln_log) | [http://bit.ly/PAT-seq-WT1B_align_pdf](http://bit.ly/PAT-seq-WT1B_align_pdf) |
+| WT1C     |  [http://bit.ly/PAT-seq-WT1C_aln_log](http://bit.ly/PAT-seq-WT1C_aln_log) | [http://bit.ly/PAT-seq-WT1C_align_pdf`](http://bit.ly/PAT-seq-WT1C_align_pdf) |
+| WT1D     |  [http://bit.ly/PAT-seq-WT1D_aln_log](http://bit.ly/PAT-seq-WT1D_aln_log) | [http://bit.ly/PAT-seq-WT1D_align_pdf](http://bit.ly/PAT-seq-WT1D_align_pdf) |
+| WT2A     |  [http://bit.ly/PAT-seq-WT2A_aln_log](http://bit.ly/PAT-seq-WT2A_aln_log) | [http://bit.ly/PAT-seq-WT2A_align_pdf](http://bit.ly/PAT-seq-WT2A_align_pdf) |
+| WT2B     |  [http://bit.ly/PAT-seq-WT2B_aln_log](http://bit.ly/PAT-seq-WT2B_aln_log) | [http://bit.ly/PAT-seq-WT2B_align_pdf](http://bit.ly/PAT-seq-WT2B_align_pdf) |
+| WT2C     |  [http://bit.ly/PAT-seq-WT2C_aln_log](http://bit.ly/PAT-seq-WT2C_aln_log) | [http://bit.ly/PAT-seq-WT2C_align_pdf](http://bit.ly/PAT-seq-WT2C_align_pdf) |
+| WT2D     |  [http://bit.ly/PAT-seq-WT2D_aln_log](http://bit.ly/PAT-seq-WT2D_aln_log) | [http://bit.ly/PAT-seq-WT2D_align_pdf](http://bit.ly/PAT-seq-WT2D_align_pdf) |
+| MUT1A     |  [http://bit.ly/PAT-seq-MUT1A_aln_log](http://bit.ly/PAT-seq-MUT1A_aln_log) | [http://bit.ly/PAT-seq-MUT1A_aln_pdf](http://bit.ly/PAT-seq-MUT1A_aln_pdf) |
+| MUT1B     |  [http://bit.ly/PAT-seq-MUT1B_aln_log](http://bit.ly/PAT-seq-MUT1B_aln_log) | [http://bit.ly/PAT-seq-MUT1B_aln_pdf](http://bit.ly/PAT-seq-MUT1B_aln_pdf) |
+| MUT1C     |  [http://bit.ly/PAT-seq-MUT1C_aln_log](http://bit.ly/PAT-seq-MUT1C_aln_log) | [http://bit.ly/PAT-seq-MUT1C_aln_pdf`](http://bit.ly/PAT-seq-MUT1C_aln_pdf) |
+| MUT1D     |  [http://bit.ly/PAT-seq-MUT1D_aln_log](http://bit.ly/PAT-seq-MUT1D_aln_log) | [http://bit.ly/PAT-seq-MUT1D_aln_pdf](http://bit.ly/PAT-seq-MUT1D_aln_pdf) |
+| MUT2A     |  [http://bit.ly/PAT-seq-MUT2A_aln_log](http://bit.ly/PAT-seq-MUT2A_aln_log) | [http://bit.ly/PAT-seq-MUT2A_aln_pdf](http://bit.ly/PAT-seq-MUT2A_aln_pdf) |
+| MUT2B     |  [http://bit.ly/PAT-seq-MUT2B_aln_log](http://bit.ly/PAT-seq-MUT2B_aln_log) | [http://bit.ly/PAT-seq-MUT2B_aln_pdf](http://bit.ly/PAT-seq-MUT2B_aln_pdf) |
+| MUT2C     |  [http://bit.ly/PAT-seq-MUT2C_aln_log](http://bit.ly/PAT-seq-MUT2C_aln_log) | [http://bit.ly/PAT-seq-MUT2C_aln_pdf](http://bit.ly/PAT-seq-MUT2C_aln_pdf) |
+| MUT2D     |  [http://bit.ly/PAT-seq-MUT2D_aln_log](http://bit.ly/PAT-seq-MUT2D_aln_log) | [http://bit.ly/PAT-seq-MUT2D_aln_pdf](http://bit.ly/PAT-seq-MUT2D_aln_pdf) |
 
 ### Parsing alignments
 
 |   Sample  |   Parse log    |     Parse report       |
 |:---------:|:------------------:|:---------------------------:|
-| MUT1A     |  [TXT](http://bit.ly/PAT-seq-MUT1A_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1A_parse_pdf) |
-| MUT1B     |  [TXT](http://bit.ly/PAT-seq-MUT1B_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1B_parse_pdf) |
-| MUT1C     |  [TXT](http://bit.ly/PAT-seq-MUT1C_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1C_parse_pdf) |
-| MUT1D     |  [TXT](http://bit.ly/PAT-seq-MUT1D_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT1D_parse_pdf) |
-| MUT2A     |  [TXT](http://bit.ly/PAT-seq-MUT2A_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2A_parse_pdf) |
-| MUT2B     |  [TXT](http://bit.ly/PAT-seq-MUT2B_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2B_parse_pdf) |
-| MUT2C     |  [TXT](http://bit.ly/PAT-seq-MUT2C_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2C_parse_pdf) |
-| MUT2D     |  [TXT](http://bit.ly/PAT-seq-MUT2D_parse_log) | [PDF](http://bit.ly/PAT-seq-MUT2D_parse_pdf) |
+| WT1A     |  [http://bit.ly/PAT-seq-WT1A_parse_log](http://bit.ly/PAT-seq-WT1A_parse_log) | [http://bit.ly/PAT-seq-WT1A_parse_pdf](http://bit.ly/PAT-seq-WT1A_parse_pdf) |
+| WT1B     |  [http://bit.ly/PAT-seq-WT1B_parse_log](http://bit.ly/PAT-seq-WT1B_parse_log) | [http://bit.ly/PAT-seq-WT1B_parse_pdf](http://bit.ly/PAT-seq-WT1B_parse_pdf) |
+| WT1C     |  [http://bit.ly/PAT-seq-WT1C_parse_log](http://bit.ly/PAT-seq-WT1C_parse_log) | [http://bit.ly/PAT-seq-WT1C_parse_pdf](http://bit.ly/PAT-seq-WT1C_parse_pdf) |
+| WT1D     |  [http://bit.ly/PAT-seq-WT1D_parse_log](http://bit.ly/PAT-seq-WT1D_parse_log) | [http://bit.ly/PAT-seq-WT1D_parse_pdf](http://bit.ly/PAT-seq-WT1D_parse_pdf) |
+| WT2A     |  [http://bit.ly/PAT-seq-WT2A_parse_log](http://bit.ly/PAT-seq-WT2A_parse_log) | [http://bit.ly/PAT-seq-WT2A_parse_pdf](http://bit.ly/PAT-seq-WT2A_parse_pdf) |
+| WT2B     |  [http://bit.ly/PAT-seq-WT2B_parse_log](http://bit.ly/PAT-seq-WT2B_parse_log) | [http://bit.ly/PAT-seq-WT2B_parse_pdf](http://bit.ly/PAT-seq-WT2B_parse_pdf) |
+| WT2C     |  [http://bit.ly/PAT-seq-WT2C_parse_log](http://bit.ly/PAT-seq-WT2C_parse_log) | [http://bit.ly/PAT-seq-WT2C_parse_pdf](http://bit.ly/PAT-seq-WT2C_parse_pdf) |
+| WT2D     |  [http://bit.ly/PAT-seq-WT2D_parse_log](http://bit.ly/PAT-seq-WT2D_parse_log) | [http://bit.ly/PAT-seq-WT2D_parse_pdf](http://bit.ly/PAT-seq-WT2D_parse_pdf) |
+| MUT1A     |  [http://bit.ly/PAT-seq-MUT1A_parse_log](http://bit.ly/PAT-seq-MUT1A_parse_log) | [http://bit.ly/PAT-seq-MUT1A_parse_pdf](http://bit.ly/PAT-seq-MUT1A_parse_pdf) |
+| MUT1B     |  [http://bit.ly/PAT-seq-MUT1B_parse_log](http://bit.ly/PAT-seq-MUT1B_parse_log) | [http://bit.ly/PAT-seq-MUT1B_parse_pdf](http://bit.ly/PAT-seq-MUT1B_parse_pdf) |
+| MUT1C     |  [http://bit.ly/PAT-seq-MUT1C_parse_log](http://bit.ly/PAT-seq-MUT1C_parse_log) | [http://bit.ly/PAT-seq-MUT1C_parse_pdf](http://bit.ly/PAT-seq-MUT1C_parse_pdf) |
+| MUT1D     |  [http://bit.ly/PAT-seq-MUT1D_parse_log](http://bit.ly/PAT-seq-MUT1D_parse_log) | [http://bit.ly/PAT-seq-MUT1D_parse_pdf](http://bit.ly/PAT-seq-MUT1D_parse_pdf) |
+| MUT2A     |  [http://bit.ly/PAT-seq-MUT2A_parse_log](http://bit.ly/PAT-seq-MUT2A_parse_log) | [http://bit.ly/PAT-seq-MUT2A_parse_pdf](http://bit.ly/PAT-seq-MUT2A_parse_pdf) |
+| MUT2B     |  [http://bit.ly/PAT-seq-MUT2B_parse_log](http://bit.ly/PAT-seq-MUT2B_parse_log) | [http://bit.ly/PAT-seq-MUT2B_parse_pdf](http://bit.ly/PAT-seq-MUT2B_parse_pdf) |
+| MUT2C     |  [http://bit.ly/PAT-seq-MUT2C_parse_log](http://bit.ly/PAT-seq-MUT2C_parse_log) | [http://bit.ly/PAT-seq-MUT2C_parse_pdf](http://bit.ly/PAT-seq-MUT2C_parse_pdf) |
+| MUT2D     |  [http://bit.ly/PAT-seq-MUT2D_parse_log](http://bit.ly/PAT-seq-MUT2D_parse_log) | [http://bit.ly/PAT-seq-MUT2D_parse_pdf](http://bit.ly/PAT-seq-MUT2D_parse_pdf) |
 
 ### Quantifying tail length slippage using spike-in standards
 
@@ -80,9 +96,21 @@ Sequencing data are available in the [ArrayExpress database](http://www.ebi.ac.u
 
 ### Cross-study correlation
 
-- [PAL_total vs. WT1](http://bit.ly/PAT_seq_PAL_total_vs_WT1_pdf)
-- [PAL_total vs. WT2](http://bit.ly/PAT-seq_PAL_total_vs_WT2_pdf)
-- [PAL_total vs. PASTA](http://bit.ly/PAT-seq-PAL_total_vs_PASTA_pdf)
+| WT1 vs. MUT1     |  [http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_log](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_log) | [http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_pdf](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_pdf) | [http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_trs_tab](http://bit.ly/PAT-seq-TEST_WT1_vs_MUT1_trs_tab) |
+| WT2 vs. MUT2     |  [http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_log](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_log) | [http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_pdf](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_pdf) | [http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_trs_tab](http://bit.ly/PAT-seq-TEST_WT2_vs_MUT2_trs_tab) |
+
+### Tail run distributions from all transcripts with G-tail coverage > 1000
+
+- [WT1:  http://bit.ly/PAT-seq-CLS_WT1_pdf](http://bit.ly/PAT-seq-CLS_WT1_pdf)
+- [WT2:  http://bit.ly/PAT-seq_CLS_WT2_pdf](http://bit.ly/PAT-seq_CLS_WT2_pdf)
+- [MUT1: http://bit.ly/PAT-seq-CLS_MUT1_pdf](http://bit.ly/PAT-seq-CLS_MUT1_pdf)
+- [MUT2: http://bit.ly/PAT-seq-CLS_MUT2_pdf](http://bit.ly/PAT-seq-CLS_MUT2_pdf)
+
+### Cross-study correlation
+
+- [PAL_total vs. WT1:   http://bit.ly/PAT_seq_PAL_total_vs_WT1_pdf](http://bit.ly/PAT_seq_PAL_total_vs_WT1_pdf)
+- [PAL_total vs. WT2:   http://bit.ly/PAT-seq_PAL_total_vs_WT2_pdf](http://bit.ly/PAT-seq_PAL_total_vs_WT2_pdf)
+- [PAL_total vs. PASTA: http://bit.ly/PAT-seq-PAL_total_vs_PASTA_pdf](http://bit.ly/PAT-seq-PAL_total_vs_PASTA_pdf)
 
 Dependencies
 ------------
