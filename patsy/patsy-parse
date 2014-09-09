@@ -298,7 +298,7 @@ class GtailParser:
         
     def tail_run(self, t,g_type ):
         # Reverse tail if orientation is forward:
-        tail    = t if g_type == 'A' else t
+        tail    = t if g_type == 'A' else t # FIXME
         tail    = self.trim_start(tail, self.ttab[g_type]) 
         # Count A/Ts until maximum number of errors
         # is reached:
